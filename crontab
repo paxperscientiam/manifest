@@ -1,0 +1,18 @@
+# -*- mode:crontab -*-
+SHELL = "/opt/local/bin/bash"
+PATH = "/opt/local/bin:/opt/local/sbin:/opt/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:"
+MAILTO = ""
+RUN_BY_CRON = "TRUE"
+# min   hour    day     month   day-of-week command
+#(0-59) (0-23)  (1-31)  (1-12)  (0-6)
+#------------------------------------------------------------
+# MANIFEST
+#------------------------------------------------------------
+10      *       *       *       *       /usr/local/bin/manifest dot
+20	*	*	*	*	/usr/local/bin/manifest gem
+25	*	*	*	*	/usr/local/bin/manifest npm
+35	*	*	*	*	/usr/local/bin/manifest emacs
+40      *       *       *       *       /usr/local/bin/manifest port
+45      *       *       *       *       /usr/local/bin/manifest sysApps
+
+
