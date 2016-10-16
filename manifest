@@ -1,14 +1,14 @@
 #!/opt/local/bin/bash
 ###################################
-# Disclaimer: EXECUTE AT YOUR OWN PERIL.
-# Version: 0.5.0
+# Disclaimer: THIS IS AN ACTIVE EXPERIMENT. EXECUTE AT YOUR OWN PERIL.
+# # # use https://github.com/paxperscientiam/imagelightbox
 ###################################
 # SECTION: News.
-# 2016/08/21 - initial release
 ###################################
 # Manifest -- a project dedicated to the paranoid.
 # Manifest is written for and tested on Bash on OSX.
 # Purpose: To generate and maintain 'manifests' of applications/gems/modules/packages/ports/etc.
+## To mirror a user's environment.
 # Execution: To be run either as a cron job or from a shell.
 ###################################
 # SECTION: Requirements.
@@ -28,6 +28,7 @@ _LOG="${HOME}/Library/logs/manifest.log"
 ###################################
 unset CDPATH
 hash -r # update hash table
+# required for nice globbing stuff
 ## resets
 _BASE=
 _MANIFESTS=
@@ -35,76 +36,101 @@ _PKGS=
 _SearchPaths=
 _SavePaths=
 
-
 ## Check for version number
 _Major="${BASH_VERSINFO[0]}"
 _Minor="${BASH_VERSINFO[1]}"
 _Version="${_Major}.${_Minor}"
 _requiredVersion=4.2
-
-
-if (( $(bc <<< "${_Version} >= ${_requiredVersion}") )); then
-  printf 'Version requirent met.' >> "${_LOG}"
+#
+# check for config file
+if [[ -f "${_RC}" ]]; then
+  printf 'RC file found.\n' &> "${_LOG}"
+  source "${_RC}"
 else
-  printf 'Fail!. Version %s is required!' "${_requiredVersion}"
+  printf 'Configuration file is required!\n' &> "${_LOG}"
   exit 1
 fi
 
 
-# check for config file
-if [[ -f "${_RC}" ]]; then
-  printf 'RC file found.' >> "${_LOG}"
-  source "${_RC}"
-  #
+function __init () {
+  printf '\n\n%s\n' "$(timeStamp)"
+  ## terminal check
+  if [[ -t 0  || -t 1 ]]; then
+    printf "Running in Terminal.\n"
+  else
+    printf 'Not-a-terminal.\n'
+  fi
+  ## compatibility
+  if (( $(bc <<< "${_Version} >= ${_requiredVersion}") )); then
+    printf 'Version requirement met.\n'
+  else
+    printf 'Fail!. Version %s is required!\n' "${_requiredVersion}"
+    exit 1
+  fi
+  ##
+  ##
   # _BASE and _MANIFESTS *must* be defined and non-null
-  [[ -v _BASE && -n "${_BASE}" && -d "/${_BASE}/" ]] &&
-    printf '_BASE is defined as %s\n' "/${_BASE}/" ||
-      { printf '_BASE must be defined and directory path must exist!\n' &&
-          exit 1; }
+  if [[ -v _BASE && -n "${_BASE}" && -d "/${_BASE}/" ]]; then
+    printf '_BASE is defined as %s\n' "$(cleanPath "/${_BASE}/")"
+  else
+    printf %b '_BASE must be defined and directory path must exist!\n'
+    exit 1
+  fi
+
   _BASE="/${_BASE}/"
   #
-  [[ -n "${_MANIFESTS[@]}" ]] &&
-    printf '_MANIFESTS is not null.\n' ||
-      { printf '_MANIFESTS() must be defined!\n' && exit 1; }
+  #
+  if [[ -n "${_MANIFESTS[@]}" ]]; then
+    printf '_MANIFESTS is defined.\n'
+  else
+    printf '_MANIFESTS() must be defined!\n'
+    exit 1
+  fi
   #
   # UPDATE MANIFESTS BY APPENDING _BASE
-  for i in "${!_MANIFESTS[@]}"
+  for key in "${!_MANIFESTS[@]}"
   do
-    _MANIFESTS[${i}]="${_BASE}${_MANIFESTS[$i]}"
-    let counter+=1
+    _MANIFESTS["$key"]="${_BASE}${_MANIFESTS["$key"]}"
   done
+
   #
   #
   # package managers
   [[ -n "${_PKGS[@]}" ]] || printf 'No package managers defined.\n'
   #
   # for custom manifests
-  [[ -n "${_SearchPaths[@]}" ]] &&
-    printf '_SearchPaths() is defined.\n' || printf "_SearchPaths() is empty.\n"
-  echo "${_SearchPaths[@]}"
+  if [[ -n "${_SearchPaths[@]}" ]]; then
+    printf '_SearchPaths() is defined.\n'
+  else
+    printf "_SearchPaths() is empty.\n"
+    echo "${_SearchPaths[@]}"
+    exit 1
+  fi
   #
   #
-  [[ -n "${_SavePaths[@]}" ]] &&
-    printf '_SavePaths() is defined.\n' || printf "_SavePaths() is empty, all files rooted to _BASE.\n"
-  
-else
-  printf 'Configuration file is required!' >> "${_LOG}"
-  exit 1
 
-fi
+  if [[ -n "${_SavePaths[@]}" ]]; then
+    printf '_SavePaths() is defined.\n'
+  else
+    printf "_SavePaths() is empty, all files rooted to _BASE.\n"
+    exit 1
+  fi
+  #####
+  ####
+} &> "${_LOG}"
 
 
 # Reset log file. (user should have a choice in the matter)
->"${_LOG}" # create/reset log, might be causing trouble with readline
+#>"${_LOG}" # create/reset log, might be causing trouble with readline
 
 ###################################
 # SECTION: Primary Functions.
 ###################################
 # FUNCTION: Main
 function __manifest() {
-  
-  printf 'That is all,%s! (^.^)\n' "${_OWNER}"  >/dev/tty
+  printf 'That is all, %s! (^.^)\n' "${_OWNER}"  >/dev/tty
 }
+#
 #
 # FUNCTION: Copy dotfiles.
 function __dot() {
@@ -117,7 +143,7 @@ $(termWidth)
 EOM
     exit 0
   fi
-  #  
+  #
   mkdir -p -m 744 "${_SavePaths['dirDot']}"
   rsync -cpRz "${HOME}"/.??*[!~$] "${_SavePaths['dirDot']}"
   rm -f "${_SavePaths['dirDot']}CLONE"*
@@ -125,59 +151,60 @@ EOM
   #
   printf 'done.\n' >/dev/tty
   exit 0
-} &>> "${_LOG}" # This syntax allows for stdout and stderr to be *appended* to log file.
+} &> "${_LOG}" # This syntax allows for stdout and stderr to be *appended* to log file.
 #
 #
 
 # FUNCTION: Generate 'Gemfile' to use for reinstalling 'local' gems.
 function __gem() {
   if [[ $1 == 'help' ]]; then
-    cat <<EOM
+    cat >/dev/tty <<EOM
 $(termWidth)
-Create a manifest of Ruby gems.
+Create an execute-ready manifest of ruby gems.
 $(termWidth)
 EOM
     exit 0
   fi
-  type gem &>/dev/null || { echo >&2 "I require GEM but it's not installed. Aborting."; exit 1;}
+  #
+  type gem &>/dev/null || { printf "I require GEM but it's not installed. Aborting."; exit 1;}
   # need to properly parse output so that it can used on the command line
   printf 'Generating %s manifest...' "${FUNCNAME[0]}" >/dev/tty
   #thanks to arturkomarov @ disqus
-  gem list|sed 's/(//'|sed 's/)//'|awk '{print "gem install " $1 " --version=" $2}' > "${_MANIFESTS['gems']}"
+  gem list | sed 's/(//'|sed 's/)//'|awk '{print "gem install " $1 " --version=" $2}' > "${_MANIFESTS['gems']}"
   #
+  echo -e "${_MANIFESTS[gems]}"
   printf 'done.\n' >/dev/tty
   #
-  printf "Executing next requested function."
+  printf "Executing next requested function.\n"
   "${1}" && exit 0
-}
+} &> "${_LOG}"
 
 #
 # FUNCTION: Generate a 'package.json' for NPM global modules.
 function __npm() {
   if [[ $1 == 'help' ]]; then
-    cat <<EOM
+    cat >/dev/tty <<EOM
 $(termWidth)
 Create a manifest of global npm modules.
 $(termWidth)
 EOM
     exit 0
   fi
-  type npm &>/dev/null || { echo >&2 "I require npm but it's not installed. Aborting."; exit 1;} 
-  printf 'Generating %s manifest...' "${FUNCNAME[0]}" >/dev/tty
+  type npm &>/dev/null || { echo >&2 "I require npm but it's not installed. Aborting."; exit 1;}
+  printf 'Generating %s manifest...\n' "${FUNCNAME[0]}" >/dev/tty
   npm -g ls --json true --parseable true --depth=0 1> "${_MANIFESTS['npm_global']}" 2> "${_LOG}"
   #
   printf 'done.\n' >/dev/tty
 
   # continue
   "${1}" && exit 0
-}
+} &> "${_LOG}"
 #
 # FUNCTION: Emacs stuff.
 function __emacs() {
   if [[ $1 == 'help' ]]; then
-    cat <<EOM
+    cat >/dev/tty <<EOM
 $(termWidth)
-${FUNCNAME}:
 Create a 'cask' manifest.
 $(termWidth)
 EOM
@@ -203,12 +230,12 @@ EOM
   #continue
   "${1}" && exit
 
-}
+} &> "${_LOG}"
 #
 # Function: create system apps manifest.
 function __sysApps() {
   if [[ $1 == 'help' ]]; then
-    cat <<EOM
+    cat >/dev/tty <<EOM
 $(termWidth)
 Create a manifest of Applications.
 $(termWidth)
@@ -216,51 +243,50 @@ EOM
     exit 0
   fi
   #
-  
-  printf 'Generating OSX %s manifest...' "${FUNCNAME[0]}" >/dev/tty
-  >>"${_MANIFESTS['apps']}" && echo -e "Archived: $(timeStamp)\nApplication count: `mdfind -onlyin ${_SearchPaths['dirApps']} kMDItemKind == Application | tee >(wc -l) | sort -f;` \n\n\n" | cat - "${_MANIFESTS['apps']}" > "${TMPDIR}t" &&  mv -f "${TMPDIR}t" "${_MANIFESTS['apps']}"
+  printf 'Generating %s %s manifest...' "$(sw_vers -productVersion)" "${FUNCNAME[0]}" >/dev/tty
+  printf "Archived:\n$(mdfind -onlyin /Applications/ kMDItemKind == Application | tee >(wc -l) | sort -f;) \n\n\n" > "${_MANIFESTS['apps']}"
   #
   printf 'done.\n' >/dev/tty
 
   # continue
   "${1}" && exit 0
-}
+} &> "${_LOG}"
 #
 # # manifest of all installed macports ports
 function __port() {
   if [[ $1 == 'help' ]]; then
-    cat <<EOM
+    cat >/dev/tty <<EOM
 $(termWidth)
 Create a manifest of installed and requested Macports ports.
 $(termWidth)
 EOM
     exit 0
   fi
-  type port &>/dev/null  || { echo >&2 "I require the Macports port, but it's not installed. Aborting." exit 1; }
+  type port &>/dev/null  || { echo >&2 "I require the Macports port, but it's not installed. Aborting."; exit 1; }
   # Credit: Macports
   printf 'Generating %s manifest...' "${FUNCNAME[0]}" >/dev/tty
   port -qv installed > "${_MANIFESTS['ports']}"
   printf 'done.\n' >/dev/tty
   printf "Creating manifest of requested ports..." >/dev/tty
-  
+
   port echo requested | cut -d ' ' -f 1 > "${_MANIFESTS['ports_req']}"
   #
   printf 'done.\n' >/dev/tty
   "${1}" && exit 0
-}
+} &> "${_LOG}"
 #
 function __cron() {
   # crontabs
-  printf 'Replicating %s...' "${FUNCNAME[0]}" >/dev/tty
+  printf 'Replicating crontab of use %s...' "${_OWNER}" >/dev/tty
   crontab -l > "${_BASE}${USER}.crontab.txt"
   #
   printf 'done.\n' >/dev/tty
   "$1" && exit 0
-}
+} &>"${_LOG}"
 #
 function __apache() {
   if [[ $1 == 'help' ]]; then
-    cat <<EOM
+    cat >/dev/tty <<EOM
 $(termWidth)
 This option will copy important server files.
 $(termWidth)
@@ -300,6 +326,12 @@ EOM
  function errorHandle() {
    osascript -e 'display notification "Someone setup us the bomb!" with title "Sorry, a system error occurred."'
  }
+ # sanitizing paths
+ function cleanPath () {
+   shopt -s extglob
+   printf '%s\n' "${1//+(\/)//}"
+   shopt -u extglob
+ }
  # FUNCTION:
  function timeStamp() {
    date +%Y.%m.%d.%H.%M.%S
@@ -307,13 +339,6 @@ EOM
  # FUNCTION:
  function termWidth() {
    printf -v sep '%*s' "$(tput cols)" ; echo "${sep// /-}"
- }
- # FUNCTION
- function configExample() {
-   cat <<'EOF'
-#
-
-EOF
  }
  #
  #
@@ -324,9 +349,9 @@ EOF
  function func_menu_help() {
    cat <<EOM
 $(termWidth)
-manifest -- execute, in case of Doomsday. 
+manifest -- execute, in case of Doomsday.
 A Bash program that generates parseable package manifests using the
-syntax of respective package managers.
+syntax of respective package managers. All designed with love for the paranoid.
 
 -c: show example config (RC) file
 -f: list functions; takes optional argument
@@ -339,12 +364,9 @@ EOM
  }
  #
  #
- if [[ -t 0  || -t 1 ]]; then
-   printf "Running in Terminal" >> "${_LOG}"
- else
-   printf 'Not-a-terminal' >> "${_LOG}"
- fi
 
+
+ __init
  #
  #
  if ((!$#))
@@ -352,7 +374,7 @@ EOM
    __manifest false
  else
    while getopts acfiqvh FLAG; do
-     
+
      case $FLAG in
        a) #set a
          shift $((OPTIND-1))
@@ -361,7 +383,7 @@ EOM
 	 ;;
        c) #--config
          shift $((OPTIND-1))
-         configExample
+         printf "%b" "Not ready."
          exit 0
 	 ;;
        f)  #set option "f"
@@ -383,7 +405,7 @@ EOM
 	 exit 0
 	 ;;
        q) # set 'q'
-	 #__manifest 2&>1 /dev/null &
+	 __manifest &> /dev/null &
 	 exit 0
 	 ;;
        v) #set option "v"
@@ -395,8 +417,8 @@ EOM
 	 exit 0
 	 ;;
        \?) #unrecognized option - show help
-	 printf 'Option -%s:%s:%s not allowed.' "${BOLD}" "$OPTARG" "${NORM}"
-	 printf 'Use -h for helpful info.'
+	 printf 'Unknown option.\n'
+	 printf 'Use -h for helpful info.\n'
 	 exit 2
 	 ;;
      esac
@@ -409,21 +431,21 @@ EOM
        "__$tryFunction" false
        shift
      else
-       printf 'Invalid choice.'
+       printf 'Invalid choice.\n'
        exit 1
      fi
    done
  fi
  #
-
+ #
  exit
  #
  ###################################
  # SECTION: Thanks, man.
  ###################################
- # /u/geirha @ reddit (x2)
+ # /u/geirha @ reddit
  # thkala @ SO
  # /u/arturkomarov @ disqus
  # Louis Marascio
- # Macports
- ###################################
+ # Emacs, Gem, Macports, NPM
+ 
