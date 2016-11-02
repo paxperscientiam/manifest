@@ -4,6 +4,7 @@
 # # # use https://github.com/paxperscientiam/imagelightbox
 ###################################
 # SECTION: News.
+
 ###################################
 # Manifest -- a project dedicated to the paranoid.
 # Manifest is written for and tested on Bash on OSX.
@@ -128,6 +129,7 @@ function __init () {
 ###################################
 # FUNCTION: Main
 function __manifest() {
+  echo "${type}"
   printf 'That is all, %s! (^.^)\n' "${_OWNER}"  >/dev/tty
 }
 #
@@ -373,7 +375,7 @@ EOM
  then
    __manifest false
  else
-   while getopts acfiqvh FLAG; do
+   while getopts acfiq:tvh FLAG; do
 
      case $FLAG in
        a) #set a
@@ -408,6 +410,11 @@ EOM
 	 __manifest &> /dev/null &
 	 exit 0
 	 ;;
+       t) # set 't'
+	 shift $((OPTIND-1))
+	 type="system"
+	 __manifest
+	 ;;
        v) #set option "v"
 	 printf '?\n' >/dev/tty
 	 exit 0
@@ -425,16 +432,16 @@ EOM
    done
    #
    #
-   for tryFunction in "${@}"
-   do
-     if type -t "__$tryFunction" >/dev/null; then
-       "__$tryFunction" false
-       shift
-     else
-       printf 'Invalid choice.\n'
-       exit 1
-     fi
-   done
+ #   for tryFunction in "${@}"
+#    do
+#      if type -t "__$tryFunction" >/dev/null; then
+#        "__$tryFunction" false
+#        shift
+#      else
+#        printf 'Invalid choice.\n'
+#        exit 1
+#      fi
+#    done
  fi
  #
  #
@@ -448,4 +455,3 @@ EOM
  # /u/arturkomarov @ disqus
  # Louis Marascio
  # Emacs, Gem, Macports, NPM
- 
