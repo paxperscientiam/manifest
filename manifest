@@ -129,7 +129,9 @@ function __init () {
 ###################################
 # FUNCTION: Main
 function __manifest() {
-  echo "${type}"
+  echo "${sytem}"
+  echo "${notify}"
+  /usr/bin/osascript -e 'display notification "Notification text" with title "Title"'
   printf 'That is all, %s! (^.^)\n' "${_OWNER}"  >/dev/tty
 }
 #
@@ -406,13 +408,16 @@ EOM
 	 echo "Initialize configuration file?" >/dev/tty
 	 exit 0
 	 ;;
+       n) # use osx notifications
+	 notify=1
+	 ;;
        q) # set 'q'
 	 __manifest &> /dev/null &
 	 exit 0
 	 ;;
        t) # set 't'
 	 shift $((OPTIND-1))
-	 type="system"
+	 sytem=1
 	 __manifest
 	 ;;
        v) #set option "v"
