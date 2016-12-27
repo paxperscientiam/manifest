@@ -36,6 +36,7 @@ _MANIFESTS=
 _PKGS=
 _SearchPaths=
 _SavePaths=
+_isTerm=
 
 ## Check for version number
 _Major="${BASH_VERSINFO[0]}"
@@ -43,6 +44,9 @@ _Minor="${BASH_VERSINFO[1]}"
 _Version="${_Major}.${_Minor}"
 _requiredVersion=4.2
 #
+
+
+
 # check for config file
 if [[ -f "${_RC}" ]]; then
   printf 'RC file found.\n' &> "${_LOG}"
@@ -53,13 +57,16 @@ else
 fi
 
 
-function __init () {
+function init () {
+
   printf '\n\n%s\n' "$(timeStamp)"
   ## terminal check
   if [[ -t 0  || -t 1 ]]; then
     printf "Running in Terminal.\n"
+    _isTerm=1
   else
     printf 'Not-a-terminal.\n'
+    _isTerm=0
   fi
   ## compatibility
   if (( $(bc <<< "${_Version} >= ${_requiredVersion}") )); then
@@ -118,6 +125,9 @@ function __init () {
   fi
   #####
   ####
+  # default vars
+  notify=0
+
 } &> "${_LOG}"
 
 
@@ -129,10 +139,10 @@ function __init () {
 ###################################
 # FUNCTION: Main
 function __manifest() {
-  echo "${sytem}"
-  echo "${notify}"
-  /usr/bin/osascript -e 'display notification "Notification text" with title "Title"'
-  printf 'That is all, %s! (^.^)\n' "${_OWNER}"  >/dev/tty
+  notify "manifest core is running."
+
+ # /usr/bin/osascript -e "display notification \"That is all, $_OWNER \" "
+#  printf 'That is all, %s! (^.^)\n' "${_OWNER}"  >/dev/tty
 }
 #
 #
@@ -154,6 +164,7 @@ EOM
   >>"${_SavePaths['dirDot']}CLONE.$(timeStamp)"
   #
   printf 'done.\n' >/dev/tty
+  notify "${FUNCNAME[0]} is complete."
   exit 0
 } &> "${_LOG}" # This syntax allows for stdout and stderr to be *appended* to log file.
 #
@@ -180,6 +191,7 @@ EOM
   printf 'done.\n' >/dev/tty
   #
   printf "Executing next requested function.\n"
+  notify "${FUNCNAME[0]} is complete."
   "${1}" && exit 0
 } &> "${_LOG}"
 
@@ -201,6 +213,7 @@ EOM
   printf 'done.\n' >/dev/tty
 
   # continue
+  notify "${FUNCNAME[0]} is complete."
   "${1}" && exit 0
 } &> "${_LOG}"
 #
@@ -230,7 +243,7 @@ EOM
   cp -p "${HOME}/.emacs.d/Cask" "${_BASE}"
   #
   printf 'done.\n' >/dev/tty
-
+  notify "${FUNCNAME[0]} is complete."
   #continue
   "${1}" && exit
 
@@ -251,7 +264,7 @@ EOM
   printf "Archived:\n$(mdfind -onlyin /Applications/ kMDItemKind == Application | tee >(wc -l) | sort -f;) \n\n\n" > "${_MANIFESTS['apps']}"
   #
   printf 'done.\n' >/dev/tty
-
+  notify "${FUNCNAME[0]} is complete."
   # continue
   "${1}" && exit 0
 } &> "${_LOG}"
@@ -276,6 +289,7 @@ EOM
   port echo requested | cut -d ' ' -f 1 > "${_MANIFESTS['ports_req']}"
   #
   printf 'done.\n' >/dev/tty
+   notify "${FUNCNAME[0]} is complete."
   "${1}" && exit 0
 } &> "${_LOG}"
 #
@@ -285,8 +299,11 @@ function __cron() {
   crontab -l > "${_BASE}${USER}.crontab.txt"
   #
   printf 'done.\n' >/dev/tty
+  notify "${FUNCNAME[0]} is complete."
   "$1" && exit 0
-} &>"${_LOG}"
+}
+#&> notify
+#&>"${_LOG}"
 #
 function __apache() {
   if [[ $1 == 'help' ]]; then
@@ -313,7 +330,7 @@ EOM
      '/opt/local/apache2/conf/extra/mod_php56.conf' \
      "${_HTTPD_MIME_CONFIG}" "${_SavePaths['dirServerFiles']}"
 
-
+  notify "${FUNCNAME[0]} is complete."
   #rsync -cpRz "
 
   "$1" && exit 0
@@ -327,6 +344,11 @@ EOM
  # SECTION: Auxilary Functions.
  ###################################
  # FUNCTION:
+ function notify () {
+   #apple
+   [[ "$_isTerm" -eq 1 && "$notify" -eq 1 ]] && osascript -e "display notification \"$1\" with title \"manifest $ \""
+ }
+
  function errorHandle() {
    osascript -e 'display notification "Someone setup us the bomb!" with title "Sorry, a system error occurred."'
  }
@@ -370,14 +392,14 @@ EOM
  #
 
 
- __init
+ init
  #
  #
  if ((!$#))
  then
    __manifest false
  else
-   while getopts acfiq:tvh FLAG; do
+   while getopts acfinq:tvh FLAG; do
 
      case $FLAG in
        a) #set a
@@ -409,7 +431,9 @@ EOM
 	 exit 0
 	 ;;
        n) # use osx notifications
+	 shift $((OPTIND-1))
 	 notify=1
+	 break
 	 ;;
        q) # set 'q'
 	 __manifest &> /dev/null &
@@ -421,7 +445,7 @@ EOM
 	 __manifest
 	 ;;
        v) #set option "v"
-	 printf '?\n' >/dev/tty
+	 printf 'β\n' >/dev/tty
 	 exit 0
 	 ;;
        h)  #show help
@@ -437,16 +461,17 @@ EOM
    done
    #
    #
- #   for tryFunction in "${@}"
-#    do
-#      if type -t "__$tryFunction" >/dev/null; then
-#        "__$tryFunction" false
-#        shift
-#      else
-#        printf 'Invalid choice.\n'
-#        exit 1
-#      fi
-#    done
+   for tryFunction in "${@}"
+   do
+     echo "__$tryFunction"
+     if type -t "__$tryFunction" >/dev/null; then
+       "__$tryFunction" false
+       shift
+     else
+       printf 'Invalid choice.\n'
+       exit 1
+     fi
+   done
  fi
  #
  #

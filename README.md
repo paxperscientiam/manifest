@@ -1,5 +1,5 @@
 # manifest
-manifest -- execute, in case of Doomsday. 
+manifest -- execute, in case of Doomsday.
 A Bash program that generates parseable package manifests using the
 syntax of respective package managers. All designed with love for the paranoid.
 
