@@ -169,6 +169,20 @@ EOM
 } &> "${_LOG}" # This syntax allows for stdout and stderr to be *appended* to log file.
 #
 #
+# FUNCTION manifest of background services
+function __services () {
+
+
+  type lunchy &>/dev/null || { printf "I require the lunchy gem but it's not installed. Aborting."; exit 1;}
+
+  lunchy list > "${_BASE}${USER}.background-services.txt"
+
+  printf 'Generating %s manifest of %s...' "${FUNCNAME[0]}" "${_OWNER}" >/dev/tty
+
+  printf 'done.\n' >/dev/tty
+  notify "${FUNCNAME[0]} is complete."
+}
+
 
 # FUNCTION: Generate 'Gemfile' to use for reinstalling 'local' gems.
 function __gem() {
@@ -463,7 +477,6 @@ EOM
    #
    for tryFunction in "${@}"
    do
-     echo "__$tryFunction"
      if type -t "__$tryFunction" >/dev/null; then
        "__$tryFunction" false
        shift
