@@ -1,7 +1,6 @@
 #!/opt/local/bin/bash
 ###################################
 # Disclaimer: THIS IS AN ACTIVE EXPERIMENT. EXECUTE AT YOUR OWN PERIL.
-# # # use https://github.com/paxperscientiam/imagelightbox
 ###################################
 # SECTION: News.
 
@@ -412,7 +411,6 @@ EOM
  }
  #
  #
-
 
  init
  #
