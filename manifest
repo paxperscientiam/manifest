@@ -1,3 +1,4 @@
+#!/bin/bash
 #!/opt/local/bin/bash
 ###################################
 # Disclaimer: THIS IS AN ACTIVE EXPERIMENT. EXECUTE AT YOUR OWN PERIL.
@@ -330,10 +331,10 @@ EOM
   fi
   type httpd &>/dev/null || { echo >&2 "I require HTTPD but it's not installed. Aborting."; exit 1;}
   # Permissions?
-  _HTTPD_ROOT="$(httpd -V | grep -Po "(?<=HTTPD_ROOT\=).*" | tr -d \")"
-  _HTTPD_SERVER_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po "(?<=SERVER_CONFIG_FILE\=).*" | tr -d \")"
+  _HTTPD_ROOT="$(httpd -V | grep -Po '(?<=HTTPD_ROOT\=\")[^"]*')"
+  _HTTPD_SERVER_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po '(?<=SERVER_CONFIG_FILE\=\")[^"]*')"
   _HTTPD_VHOST_CONFIG="${_HTTPD_ROOT}/$(grep -iPo "^include \K(.*httpd-vhosts.conf)$" $_HTTPD_SERVER_CONFIG)"
-  _HTTPD_MIME_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po "(?<=AP_TYPES_CONFIG_FILE\=).*" | tr -d \")"
+  _HTTPD_MIME_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po '(?<=AP_TYPES_CONFIG_FILE\=\")[^"]*')"
 
   mkdir -p -m 744 "${_SavePaths['dirServerFiles']}"
   #
