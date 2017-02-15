@@ -49,6 +49,7 @@ _requiredVersion=4.2
 
 
 # check for config file
+function checkRC () {
 if [[ -f "${_RC}" ]]; then
   printf 'RC file found.\n' &> "${_LOG}"
   source "${_RC}"
@@ -56,10 +57,23 @@ else
   printf 'Configuration file is required!\n' &> "${_LOG}"
   exit 1
 fi
+}
 
+
+checkVersion () {
+ ## compatibility
+  if (( $(bc <<< "${_Version} >= ${_requiredVersion}") )); then
+    printf 'Version requirement met.\n'
+  else
+    printf 'Fail!. Version %s is required!\n' "${_requiredVersion}"
+    exit 1
+  fi
+}
+# save time by not parsing
+checkVersion
+checkRC
 
 function init () {
-
   printf '\n\n%s\n' "$(timeStamp)"
   ## terminal check
   if [[ -t 0  || -t 1 ]]; then
@@ -69,13 +83,7 @@ function init () {
     printf 'Not-a-terminal.\n'
     _isTerm=0
   fi
-  ## compatibility
-  if (( $(bc <<< "${_Version} >= ${_requiredVersion}") )); then
-    printf 'Version requirement met.\n'
-  else
-    printf 'Fail!. Version %s is required!\n' "${_requiredVersion}"
-    exit 1
-  fi
+
   ##
   ##
   # _BASE and _MANIFESTS *must* be defined and non-null
