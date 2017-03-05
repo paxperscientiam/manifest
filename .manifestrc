@@ -3,29 +3,21 @@
 # Where output is manifested.
 # (example)
 
-declare -x _BASE="${HOME}/Desktop/The Cloud/Dropbox/Prometheus/"
+_BASE="${HOME}/The Cloud/Dropbox/Prometheus/"
+
 # Package Managers
-declare -ax _PKGS=(
+_PKGS=(
   "npm"
   "port"
   "gem"
   "emacs"
 )
-declare -Ax _SearchPaths=(
+_SearchPaths=(
   ["dirApps"]="/Applications/"
 )
 #
 # (absolute or relative, assumed with respect to _BASE
-declare -Ax _SavePaths=(
-  ["dirDot"]="${_BASE}dotFiles/"
-  ["dirServerFiles"]="${_BASE}serverFiles/"
-)
-
-# # Holds manifests file names.
-declare -Ax _MANIFESTS=(
-  ['apps']="system.apps.txt"
-  ['ports']="system.macports.txt"
-  ['ports_req']="system.macports-requested.txt"
-  ['npm_global']="npm-global.json"
-  ['gems']="local.gems.txt"
+_SavePaths=(
+  ["dirDot"]="${_BASE}/dotFiles/"
+  ["dirServerFiles"]="${_BASE}/serverFiles/"
 )
