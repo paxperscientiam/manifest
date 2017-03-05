@@ -340,14 +340,14 @@ EOM
   # Permissions?
   _HTTPD_ROOT="$(httpd -V | grep -Po '(?<=HTTPD_ROOT\=\")[^"]*')"
   _HTTPD_SERVER_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po '(?<=SERVER_CONFIG_FILE\=\")[^"]*')"
-  _HTTPD_VHOST_CONFIG="${_HTTPD_ROOT}/extra/httpd-vhosts.conf"
+  _HTTPD_VHOST_CONFIG="${_HTTPD_ROOT}/conf/extra/httpd-vhosts.conf"
   _HTTPD_MIME_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po '(?<=AP_TYPES_CONFIG_FILE\=\")[^"]*')"
 
-#backup includes
-# while IFS= read -r result
-#   do
-#     cp -p "${_HTTPD_ROOT}/${result}" "${_SavePaths['dirServerFiles']}"
-#   done < <(grep -iPo "(?<=include).*conf\/.*" /opt/local/apache2/conf/httpd.conf)
+  #backup includes
+  while IFS= read -r result
+  do
+    cp -p "${_HTTPD_ROOT}/${result}" "${_BASE}/serverFiles/"
+  done < <(grep -iPo "(?<=include\s).*conf\/.*" /opt/local/apache2/conf/httpd.conf)
 
 
 #type php &>/dev/null || { echo >&2 "I require HTTPD but it's not installed. Aborting."; exit 1;}
@@ -358,15 +358,15 @@ _PHP_INI="$(php -r 'echo php_ini_loaded_file();')"
 # shellcheck disable=2174
 mkdir -p -m 744 "${_BASE}/serverFiles/"
 #
-# cp -p "${_HTTPD_SERVER_CONFIG}" \
-  #    "${_HTTPD_VHOST_CONFIG}" \
-  #    '/etc/resolv.conf' \
-  #    '/etc/hosts' \
-  #    '/opt/local/etc/dnsmasq.conf' \
-  #    '/opt/local/apache2/conf/extra/mod_php56.conf' \
-  #    "${_HTTPD_MIME_CONFIG}" "${_SavePaths['dirServerFiles']}"
+cp -p "${_HTTPD_SERVER_CONFIG}" \
+   "${_HTTPD_VHOST_CONFIG}" \
+   '/etc/resolv.conf' \
+   '/etc/hosts' \
+   '/opt/local/etc/dnsmasq.conf' \
+   '/opt/local/apache2/conf/extra/mod_php56.conf' \
+   "${_HTTPD_MIME_CONFIG}" "${_BASE}/serverFiles/"
 
-  notify "${FUNCNAME[0]} is complete."
+notify "${FUNCNAME[0]} is complete."
 }
 
 #
