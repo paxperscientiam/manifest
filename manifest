@@ -98,39 +98,22 @@ function init () {
   fi
   ##
   ##
-  _BASE="${_BASE//\/\//\/}"
   ##
   ##
   # _BASE *must* be defined and non-null
   if [[ -v _BASE && -n "${_BASE}" && -d "/${_BASE}/" ]]; then
-    printf '_BASE is defined as %s\n' "$(cleanPath "/${_BASE}/")"
+    printf '_BASE is defined as %s\n' "${_BASE,,//\/\//\/}"
   else
     printf %b '_BASE must be defined and directory path must exist!\n'
     exit 1
   fi
-
   #
   #
   # package managers
   [[ -n "${_PKGS[*]}" ]] || printf 'No package managers defined.\n'
   #
-  # for custom manifests
-  if [[ -n "${_SearchPaths[*]}" ]]; then
-    printf '_SearchPaths() is defined.\n'
-  else
-    printf "_SearchPaths() is empty.\n"
-    exit 1
-  fi
   #
   #
-
-  if [[ -n "${_SavePaths[*]}" ]]; then
-    printf '_SavePaths() is defined.\n'
-  else
-    printf "_SavePaths() is empty, all files rooted to _BASE.\n"
-    exit 1
-  fi
-  #####
   ####
   # default vars
   notify=0
@@ -164,10 +147,10 @@ EOM
     exit 0
   fi
   # shellcheck disable=2174
-  mkdir -p -m 744 "${_SavePaths['dirDot']}"
-  rsync -cpRz "${HOME}"/.??*[!~$] "${_SavePaths['dirDot']}"
-  rm -f "${_SavePaths['dirDot']}CLONE"*
-  touch "${_SavePaths['dirDot']}CLONE.$(timeStamp)"
+  mkdir -p -m 744 "${_BASE}/dots/"
+  rsync -cpRz "${HOME}"/.??*[!~$] "${_BASE}/dots/"
+  rm -f "${_BASE}/dots/CLONE"*
+  touch "${_BASE}/dots/CLONE.$(timeStamp)"
   #
   printf 'done.\n' >/dev/tty
   notify "${FUNCNAME[0]} is complete."
@@ -362,7 +345,7 @@ cp -p "${_HTTPD_SERVER_CONFIG}" \
    "${_HTTPD_VHOST_CONFIG}" \
    '/etc/resolv.conf' \
    '/etc/hosts' \
-   '/opt/local/etc/dnsmasq.conf' \
+   '/opt/local/etc/dnsmasq.conf' \[<64;96;10M
    '/opt/local/apache2/conf/extra/mod_php56.conf' \
    "${_HTTPD_MIME_CONFIG}" "${_BASE}/serverFiles/"
 

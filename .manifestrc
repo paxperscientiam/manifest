@@ -4,20 +4,3 @@
 # (example)
 
 _BASE="${HOME}/The Cloud/Dropbox/Prometheus/"
-
-# Package Managers
-_PKGS=(
-  "npm"
-  "port"
-  "gem"
-  "emacs"
-)
-_SearchPaths=(
-  ["dirApps"]="/Applications/"
-)
-#
-# (absolute or relative, assumed with respect to _BASE
-_SavePaths=(
-  ["dirDot"]="${_BASE}/dotFiles/"
-  ["dirServerFiles"]="${_BASE}/serverFiles/"
-)
