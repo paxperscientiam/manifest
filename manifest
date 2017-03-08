@@ -29,21 +29,15 @@ _CWD="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 #
 _OWNER="$(stat -f %Su "${BASH_SOURCE[0]}")" # Find script owner
 _RC_CWD="${_CWD}/.manifestrc"
-_RC_HOME="${HOME}/.manifestrc" # must be fullpath or i could use `stat -f %N path`
+_RC_HOME="${HOME}/.manifestrc"
 #
 _LOG="${HOME}/Library/logs/manifest.log"
 ###################################
 # SECTION: Prepare environment.
 ###################################
-
-unset CDPATH
-hash -r # update hash table
 # required for nice globbing stuff
 ## resets
 _BASE=
-_PKGS=
-_SearchPaths=
-_SavePaths=
 _isTerm=
 
 ## Check for version number
@@ -54,46 +48,72 @@ _requiredVersion=4.2
 #
 
 
+notify () {
+  if ((messageStatus & notify)); then
+    osascript -e "display notification \"$1\" with title \"manifest \""
+  fi
+  if ((messageStatus & stdout)); then
+    printf 'done.\n' >/dev/tty
+  fi
+  if ((messageStatus & log)); then
+    echo "LOOOOL"
+  fi
+}
+notify=$((1<<0))
+stdout=$((1<<1))
+log=$((1<<2))
+
+messageHandler() {
+  n=$(($1*notify))
+  s=$(($2*stdout))
+  l=$(($3*log))
+  #
+  return $((n|s|l))
+}
+messageHandler 1 0 0
+messageStatus=$?
+
 # check for config file
-function checkRC () {
+checkRC () {
   if [[ -f "${_RC_CWD}" ]]; then
-    printf 'RC file found in CWD.\n'
+    #    notify "RC file found in current working directory."
     . "${_RC_CWD}"
   elif [[ -f "${_RC_HOME}" ]]; then
-    printf 'RC file found in HOME.\n'
+    #   notify "RC file found in home directory."
     . "${_RC_HOME}"
     return
   else
-    printf 'Configuration file is required!\n'
+    notify 'Configuration file is required!'
     exit 1
   fi
-} &> "${_LOG}"
+}
 
 
 checkVersion () {
-  ## compatibility
-  if (( $(bc <<< "${_Version} >= ${_requiredVersion}") )); then
-    printf 'Version requirement met.\n'
+  if [[ $_Major -ge 4 && $_Minor -ge 2 ]]; then
+    notify 'Version requirement met.'
   else
-    printf 'Fail!. Version %s is required!\n' "${_requiredVersion}"
+    notify "Fail!. Version ${_requiredVersion} is required!"
     exit 1
   fi
-} &> "${_LOG}"
+}
 
 
 # save time by not parsing everything unnecessarily
 checkVersion
 checkRC
 
-function init () {
 
-  printf '\n\n%s\n' "$(timeStamp)"
+
+
+
+init () {
   ## terminal check
   if [[ -t 0  || -t 1 ]]; then
-    printf "Running in Terminal.\n"
+    notify "Running in Terminal."
     _isTerm=1
   else
-    printf 'Not-a-terminal.\n'
+    notify 'Not-a-terminal.\n'
     _isTerm=0
   fi
   ##
@@ -102,24 +122,13 @@ function init () {
   ##
   # _BASE *must* be defined and non-null
   if [[ -v _BASE && -n "${_BASE}" && -d "/${_BASE}/" ]]; then
-    printf '_BASE is defined as %s\n' "${_BASE,,//\/\//\/}"
+    notify "_BASE is defined as ${_BASE,,//\/\//\/}"
   else
-    printf %b '_BASE must be defined and directory path must exist!\n'
+    notify '_BASE must be defined and directory path must exist!'
     exit 1
   fi
   #
-  #
-  # package managers
-  [[ -n "${_PKGS[*]}" ]] || printf 'No package managers defined.\n'
-  #
-  #
-  #
-  ####
-  # default vars
-  notify=0
 }
-
-
 # Reset log file. (user should have a choice in the matter)
 #>"${_LOG}" # create/reset log, might be causing trouble with readline
 
@@ -127,22 +136,18 @@ function init () {
 # SECTION: Primary Functions.
 ###################################
 # FUNCTION: Main
-function __manifest() {
+__manifest() {
   notify "manifest core is running."
-
-  /usr/bin/osascript -e "display notification \"That is all, $_OWNER \" "
-  printf 'That is all, %s! (^.^)\n' "${_OWNER}"  >/dev/tty
+  notify "That is all, ${_OWNER}! (^.^)"
 }
 #
 #
 # FUNCTION: Copy dotfiles.
-function __dot() {
+__dot() {
   # Ensure the directory exists.
   if [[ $1 == 'help' ]]; then
-    cat <<EOM
-$(termWidth)
+    cat <<EOM|boxes -d stone
 Backup User dotFiles found in the HOME directory.
-$(termWidth)
 EOM
     exit 0
   fi
@@ -152,81 +157,64 @@ EOM
   rm -f "${_BASE}/dots/CLONE"*
   touch "${_BASE}/dots/CLONE.$(timeStamp)"
   #
-  printf 'done.\n' >/dev/tty
-  notify "${FUNCNAME[0]} is complete."
-  exit 0
-} &> "${_LOG}" # This syntax allows for stdout and stderr to be *appended* to log file.
+  notify "${FUNCNAME[0]#__} is complete."
+}
 #
 #
 # FUNCTION manifest of background services
-function __services () {
+__services () {
 
   type lunchy &>/dev/null || { printf "I require the lunchy gem but it's not installed. Aborting."; exit 1;}
 
   lunchy list > "${_BASE}${USER}.background-services.txt"
 
-  printf 'Generating %s manifest of %s...' "${FUNCNAME[0]#__}" "${_OWNER}" >/dev/tty
 
-  printf 'done.\n' >/dev/tty
+  notify "Generating ${FUNCNAME[0]#__} manifest of ${_OWNER}..."
   notify "${FUNCNAME[0]} is complete."
 }
 
 
 # FUNCTION: Generate 'Gemfile' to use for reinstalling 'local' gems.
-function __gem() {
+__gem() {
   if [[ $1 == 'help' ]]; then
-    cat >/dev/tty <<EOM
-$(termWidth)
+    cat <<EOM|boxes -d stone
 Create an execute-ready manifest of ruby gems.
-$(termWidth)
 EOM
     exit 0
   fi
   #
   type gem &>/dev/null || { printf "I require GEM but it's not installed. Aborting."; exit 1;}
   # need to properly parse output so that it can used on the command line
-  printf 'Generating %s manifest...' "${FUNCNAME[0]#__}" >/dev/tty
+  notify "Generating ${FUNCNAME[0]#__} manifest..."
   #thanks to arturkomarov @ disqus
 
   gem list | sed 's/(//'|sed 's/)//'|awk '{print "gem install " $1 " --version=" $2}' > "${_BASE}local.gems.txt"
   #
-  printf 'done.\n' >/dev/tty
-  #
-  #
-  printf "Executing next requested function.\n"
-  notify "${FUNCNAME[0]} is complete."
-  "${1}" && exit 0
+  notify "${FUNCNAME[0]#__} is complete."
 }
 
 #
 # FUNCTION: Generate a 'package.json' for NPM global modules.
-function __npm() {
+__npm() {
   if [[ $1 == 'help' ]]; then
-    cat >/dev/tty <<EOM
-$(termWidth)
+    cat <<EOM|boxes -d stone
 Create a manifest of global npm modules.
-$(termWidth)
 EOM
     exit 0
   fi
   type npm &>/dev/null || { echo >&2 "I require npm but it's not installed. Aborting."; exit 1;}
-  printf 'Generating %s manifest...\n' "${FUNCNAME[0]#__}" >/dev/tty
+  notify "Generating ${FUNCNAME[0]#__} manifest..."
   npm -g ls --json true --parseable true --depth=0 1> "${_BASE}npm-global.json" 2> "${_LOG}"
   #
-  printf 'done.\n' >/dev/tty
-
   # continue
   notify "${FUNCNAME[0]#__} is complete."
-  "${1}" && exit 0
-} &> "${_LOG}"
+}
 #
 # FUNCTION: Emacs stuff.
-function __emacs() {
+__emacs() {
   if [[ $1 == 'help' ]]; then
-    cat >/dev/tty <<EOM
-$(termWidth)
-Create a 'cask' manifest.
-$(termWidth)
+    cat <<EOM | boxes -d stone
+derp
 EOM
     exit 0
   fi
@@ -242,80 +230,66 @@ EOM
 (pallet-init))))"
 
   #
-  printf 'Generating %s (cask) manifest...' "${FUNCNAME[0]#__}" >/dev/tty
+  notify "Generating ${FUNCNAME[0]#__} (cask) manifest..."
   cp -p "${HOME}/.emacs.d/Cask" "${_BASE}"
   #
-  printf 'done.\n' >/dev/tty
   notify "${FUNCNAME[0]#__} is complete."
-  #continue
-  "${1}" && exit
 
-} &> "${_LOG}"
+}
 #
 # Function: create system apps manifest.
-function __sysApps() {
+__sysApps() {
   if [[ $1 == 'help' ]]; then
-    cat >/dev/tty <<EOM
-$(termWidth)
+     cat <<EOM|boxes -d stone
 Create a manifest of Applications.
-$(termWidth)
 EOM
     exit 0
   fi
   #
-  printf 'Generating %s %s manifest...' "$(sw_vers -productVersion)" "${FUNCNAME[0]#__}" >/dev/tty
+  notify "ROFL"
+
+  notify "Generating $(sw_vers -productVersion) $(sw_vers -productVersion) manifest..."
   printf "Archived:\n$(mdfind -onlyin /Applications/ kMDItemKind == Application | tee >(wc -l) | sort -f;) \n\n\n" > "${_BASE}system.apps.txt"
   #
 
-  printf 'done.\n' >/dev/tty
   notify "${FUNCNAME[0]} is complete."
-  # continue
-  "${1}" && exit 0
 }
 #
 # # manifest of all installed macports ports
-function __port() {
+__port() {
   if [[ $1 == 'help' ]]; then
-    cat >/dev/tty <<EOM
-$(termWidth)
+    cat <<EOM|boxes -d stone
 Create a manifest of installed and requested Macports ports.
-$(termWidth)
 EOM
     exit 0
   fi
 
   type port &>/dev/null  || { echo >&2 "I require the Macports port, but it's not installed. Aborting."; exit 1; }
   # Credit: Macports
-  printf 'Generating %s manifest...' "${FUNCNAME[0]#__}" >/dev/tty
+  notify "Generating ${FUNCNAME[0]#__} manifest..."
   port -qv installed > "${_BASE}system.macports.txt"
-  printf 'done.\n' >/dev/tty
-  printf "Creating manifest of requested ports..." >/dev/tty
+  notify "done."
+
+  notify "Creating manifest of requested ports..."
 
   port echo requested | cut -d ' ' -f 1 > "${_BASE}system.macports-requested.txt"
   #
-  printf 'done.\n' >/dev/tty
-  notify "${FUNCNAME[0]} is complete."
-  "${1}" && exit 0
+  notify "${FUNCNAME[0]#__} is complete."
 }
 #
-function __cron() {
+__cron() {
   # crontabs
-  printf 'Replicating crontab of use %s...' "${_OWNER}" >/dev/tty
+  notify "Replicating crontab of user ${_OWNER}"
   crontab -l > "${_BASE}${USER}.crontab.txt"
   #
-  printf 'done.\n' >/dev/tty
-  notify "${FUNCNAME[0]} is complete."
-  "$1" && exit 0
+  notify "${FUNCNAME[0]#__} is complete."
 }
-#&> notify
-#&>"${_LOG}"
 #
-function __apache() {
+#
+__apache() {
   if [[ $1 == 'help' ]]; then
-    cat >/dev/tty <<EOM
-$(termWidth)
+    cat <<EOM|boxes -d stone
 This option will copy important server files.
-$(termWidth)
 EOM
     exit 0
   fi
@@ -342,10 +316,11 @@ _PHP_INI="$(php -r 'echo php_ini_loaded_file();')"
 mkdir -p -m 744 "${_BASE}/serverFiles/"
 #
 cp -p "${_HTTPD_SERVER_CONFIG}" \
+   "${_PHP_INI}" \
    "${_HTTPD_VHOST_CONFIG}" \
    '/etc/resolv.conf' \
    '/etc/hosts' \
-   '/opt/local/etc/dnsmasq.conf' \[<64;96;10M
+   '/opt/local/etc/dnsmasq.conf' \
    '/opt/local/apache2/conf/extra/mod_php56.conf' \
    "${_HTTPD_MIME_CONFIG}" "${_BASE}/serverFiles/"
 
@@ -353,7 +328,7 @@ notify "${FUNCNAME[0]} is complete."
 }
 
 #
-function __getUser() {
+__getUser() {
   stat -f %Su "${BASH_SOURCE[0]}"
 }
 #
@@ -361,30 +336,15 @@ function __getUser() {
 # SECTION: Auxilary Functions.
 ###################################
 # FUNCTION:
-function notify () {
-  #apple
-  [[ "$_isTerm" -eq 1 && "$notify" -eq 1 ]] && osascript -e "display notification \"$1\" with title \"manifest $ \""
-}
 
-function errorHandle() {
+
+errorHandle() {
   osascript -e 'display notification "Someone setup us the bomb!" with title "Sorry, a system error occurred."'
 }
 
-# sanitizing paths
-function cleanPath () {
-  shopt -s extglob
-  printf '%s\n' "${1//+(\/)//}"
-  shopt -u extglob
-}
-
 # FUNCTION:
-function timeStamp() {
+timeStamp() {
   date +%Y.%m.%d.%H.%M.%S
-}
-
-# FUNCTION:
-function termWidth() {
-  printf -v sep '%*s' "$(tput cols)" ; echo "${sep// /-}"
 }
 #
 #
@@ -392,20 +352,21 @@ function termWidth() {
 # SECTION: Execute.
 ###################################
 # Menu functions
-function func_menu_help() {
+func_menu_help() {
+  BOLD=$(tput bold)
+  NORM=$(tput sgr0)
   cat <<EOM
-$(termWidth)
+${BOLD}
 manifest -- execute, in case of Doomsday.
 A Bash program that generates parseable package manifests using the
-syntax of respective package managers. All designed with love for the paranoid.
+syntax of respective package managers. All designed with love for the paranoid.${NORM}
 
--c: show example config (RC) file
+-c: show config (RC) file
 -f: list functions; takes optional argument
 -i: interactively create a .manifestrc file
 -q: quiet mode
 -v: print version
 -h: get help, seriously
-$(termWidth)
 EOM
 }
 #
@@ -419,7 +380,6 @@ then
   __manifest
 else
   while getopts acfinq:tvh FLAG; do
-
     case $FLAG in
       a) #set a
         shift $((OPTIND-1))
@@ -428,7 +388,7 @@ else
 	;;
       c) #--config
         shift $((OPTIND-1))
-        printf "%b" "Not ready."
+        printf "%b" "This option is not ready. Stay tuned!"
         exit 0
 	;;
       f)  #set option "f"
@@ -451,7 +411,6 @@ else
 	;;
       n) # use osx notifications
 	shift $((OPTIND-1))
-	notify=1
 	break
 	;;
       q) # set 'q'
