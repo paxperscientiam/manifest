@@ -7,3 +7,4 @@ syntax of respective package managers. All designed with love for the paranoid.
 
 *Requirements.*
 * Bash ≥ 4.2
+* boxes, for now
