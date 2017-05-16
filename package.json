@@ -1,8 +1,10 @@
 {
   "name": "manifest",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "A project dedicated to the paranoid.",
-  "scripts": [ "manifest" ],
+  "scripts": [
+    "manifest"
+  ],
   "global": "true",
   "install": "make install"
 }
