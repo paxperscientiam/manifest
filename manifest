@@ -184,11 +184,12 @@ EOM
   fi
   #
   type gem &>/dev/null || { printf "I require GEM but it's not installed. Aborting."; exit 1;}
+  gemv=$(gem --version)
   # need to properly parse output so that it can used on the command line
   notify "Generating ${FUNCNAME[0]#__} manifest..."
   #thanks to arturkomarov @ disqus
 
-  gem list | sed 's/(//'|sed 's/)//'|awk '{print "gem install " $1 " --version=" $2}' > "${_BASE}local.gems.txt"
+  gem list | sed 's/(//'|sed 's/)//'|awk '{print "gem install " $1 " --version=" $2}' > "${_BASE}local.gems.${gemv}.txt"
   #
   notify "${FUNCNAME[0]#__} is complete."
 }
