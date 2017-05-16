@@ -204,8 +204,10 @@ EOM
     exit 0
   fi
   type npm &>/dev/null || { echo >&2 "I require npm but it's not installed. Aborting."; exit 1;}
+  npmv=$(npm --version)
+
   notify "Generating ${FUNCNAME[0]#__} manifest..."
-  npm -g ls --json true --parseable true --depth=0 1> "${_BASE}npm-global.json" 2> "${_LOG}"
+  npm -g ls --json true --parseable true --depth=0 1> "${_BASE}npm-global.${npmv}.json" 2> "${_LOG}"
   #
   # continue
   notify "${FUNCNAME[0]#__} is complete."
