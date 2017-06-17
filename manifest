@@ -40,14 +40,17 @@ _LOG="${HOME}/Library/logs/manifest.log"
 _BASE=
 _isTerm=
 
+#cannot be null!
+osxNote=0
+ttyNote=0
+logNote=0
+
 ## Check for version number
 _Major="${BASH_VERSINFO[0]}"
 _Minor="${BASH_VERSINFO[1]}"
 _Version="${_Major}.${_Minor}"
 _requiredVersion=4.2
 #
-
-
 notify () {
   if ((messageStatus & notify)); then
     osascript -e "display notification \"$1\" with title \"manifest \""
@@ -70,8 +73,15 @@ messageHandler() {
   #
   return $((n|s|l))
 }
-messageHandler 1 1 0
-messageStatus=$?
+
+checkVersion () {
+  if [[ $_Major -ge 4 && $_Minor -ge 2 ]]; then
+    notify 'Version requirement met.'
+  else
+    notify "Fail!. Version ${_requiredVersion} is required!"
+    exit 1
+  fi
+}
 
 # check for config file
 checkRC () {
@@ -83,29 +93,20 @@ checkRC () {
     . "${_RC_HOME}"
     return
   else
-    notify 'Configuration file is required!'
+    printf '%s' 'Configuration file is required!'
     exit 1
   fi
 }
-
-
-checkVersion () {
-  if [[ $_Major -ge 4 && $_Minor -ge 2 ]]; then
-    notify 'Version requirement met.'
-  else
-    notify "Fail!. Version ${_requiredVersion} is required!"
-    exit 1
-  fi
-}
-
-
-# save time by not parsing everything unnecessarily
-checkVersion
 checkRC
+checkVersion
+messageHandler "${osxNote}" "${ttyNote}" "${logNote}"
+messageStatus=$?
 
 
 
 
+
+###############################
 
 init () {
   ## terminal check
@@ -216,6 +217,7 @@ EOM
 #
 # FUNCTION: Emacs stuff.
 __emacs() {
+
   if [[ $1 == 'help' ]]; then
     cat <<EOM | boxes -d stone
 derp

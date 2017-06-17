@@ -4,3 +4,7 @@
 # (example)
 
 _BASE="${HOME}/Dropbox/Prometheus/"
+
+osxNote=0
+ttyNote=1
+logNote=0
