@@ -3,4 +3,4 @@
 # Where output is manifested.
 # (example)
 
-_BASE="${HOME}/The Cloud/Dropbox/Prometheus/"
+_BASE="${HOME}/Dropbox/Prometheus/"

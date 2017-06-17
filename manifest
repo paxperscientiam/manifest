@@ -53,7 +53,7 @@ notify () {
     osascript -e "display notification \"$1\" with title \"manifest \""
   fi
   if ((messageStatus & stdout)); then
-    printf 'done.\n' >/dev/tty
+    printf '%s.\n' "${1}" >/dev/tty
   fi
   if ((messageStatus & log)); then
     echo "LOOOOL"
@@ -70,7 +70,7 @@ messageHandler() {
   #
   return $((n|s|l))
 }
-messageHandler 1 0 0
+messageHandler 1 1 0
 messageStatus=$?
 
 # check for config file
@@ -204,10 +204,11 @@ EOM
     exit 0
   fi
   type npm &>/dev/null || { echo >&2 "I require npm but it's not installed. Aborting."; exit 1;}
-  npmv=$(npm --version)
+  #npmv=$(npm --version)
+  nodev=$(node --version)
 
   notify "Generating ${FUNCNAME[0]#__} manifest..."
-  npm -g ls --json true --parseable true --depth=0 1> "${_BASE}npm-global.${npmv}.json" 2> "${_LOG}"
+  npm -g ls --json true --parseable true --depth=0 1> "${_BASE}npm-global.${nodev}.json" 2> "${_LOG}"
   #
   # continue
   notify "${FUNCNAME[0]#__} is complete."
@@ -234,7 +235,7 @@ EOM
 
   #
   notify "Generating ${FUNCNAME[0]#__} (cask) manifest..."
-  cp -p "${HOME}/.emacs.d/Cask" "${_BASE}"
+  cp -p "${HOME}/.emacs.d/Cask" "${_BASE}/cask.txt"
   #
   notify "${FUNCNAME[0]#__} is complete."
 
@@ -298,46 +299,46 @@ __cron() {
 }
 #
 #
-__apache() {
-  if [[ $1 == 'help' ]]; then
-    cat <<EOM|boxes -d stone
-This option will copy important server files.
-EOM
-    exit 0
-  fi
-  type httpd &>/dev/null || { echo >&2 "I require HTTPD but it's not installed. Aborting."; exit 1;}
-  # Permissions?
-  _HTTPD_ROOT="$(httpd -V | grep -Po '(?<=HTTPD_ROOT\=\")[^"]*')"
-  _HTTPD_SERVER_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po '(?<=SERVER_CONFIG_FILE\=\")[^"]*')"
-  _HTTPD_VHOST_CONFIG="${_HTTPD_ROOT}/conf/extra/httpd-vhosts.conf"
-  _HTTPD_MIME_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po '(?<=AP_TYPES_CONFIG_FILE\=\")[^"]*')"
+# __apache() {
+#   if [[ $1 == 'help' ]]; then
+#     cat <<EOM|boxes -d stone
+# This option will copy important server files.
+# EOM
+#     exit 0
+#   fi
+#   type httpd &>/dev/null || { echo >&2 "I require HTTPD but it's not installed. Aborting."; exit 1;}
+#   # Permissions?
+#   _HTTPD_ROOT="$(httpd -V | grep -Po '(?<=HTTPD_ROOT\=\")[^"]*')"
+#   _HTTPD_SERVER_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po '(?<=SERVER_CONFIG_FILE\=\")[^"]*')"
+#   _HTTPD_VHOST_CONFIG="${_HTTPD_ROOT}/conf/extra/httpd-vhosts.conf"
+#   _HTTPD_MIME_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po '(?<=AP_TYPES_CONFIG_FILE\=\")[^"]*')"
 
-  #backup includes
-  while IFS= read -r result
-  do
-    cp -p "${_HTTPD_ROOT}/${result}" "${_BASE}/serverFiles/"
-  done < <(grep -iPo "(?<=include\s).*conf\/.*" /opt/local/apache2/conf/httpd.conf)
-
-
-#type php &>/dev/null || { echo >&2 "I require HTTPD but it's not installed. Aborting."; exit 1;}
-
-_PHP_INI="$(php -r 'echo php_ini_loaded_file();')"
+#   #backup includes
+#   while IFS= read -r result
+#   do
+#     cp -p "${_HTTPD_ROOT}/${result}" "${_BASE}/serverFiles/"
+#   done < <(grep -iPo "(?<=include\s).*conf\/.*" /opt/local/apache2/conf/httpd.conf)
 
 
-# shellcheck disable=2174
-mkdir -p -m 744 "${_BASE}/serverFiles/"
-#
-cp -p "${_HTTPD_SERVER_CONFIG}" \
-   "${_PHP_INI}" \
-   "${_HTTPD_VHOST_CONFIG}" \
-   '/etc/resolv.conf' \
-   '/etc/hosts' \
-   '/opt/local/etc/dnsmasq.conf' \
-   '/opt/local/apache2/conf/extra/mod_php56.conf' \
-   "${_HTTPD_MIME_CONFIG}" "${_BASE}/serverFiles/"
+# #type php &>/dev/null || { echo >&2 "I require HTTPD but it's not installed. Aborting."; exit 1;}
 
-notify "${FUNCNAME[0]} is complete."
-}
+# _PHP_INI="$(php -r 'echo php_ini_loaded_file();')"
+
+
+# # shellcheck disable=2174
+# mkdir -p -m 744 "${_BASE}/serverFiles/"
+# #
+# cp -p "${_HTTPD_SERVER_CONFIG}" \
+#    "${_PHP_INI}" \
+#    "${_HTTPD_VHOST_CONFIG}" \
+#    '/etc/resolv.conf' \
+#    '/etc/hosts' \
+#    '/opt/local/etc/dnsmasq.conf' \
+#    '/opt/local/apache2/conf/extra/mod_php56.conf' \
+#    "${_HTTPD_MIME_CONFIG}" "${_BASE}/serverFiles/"
+
+# notify "${FUNCNAME[0]} is complete."
+# }
 
 #
 __getUser() {
