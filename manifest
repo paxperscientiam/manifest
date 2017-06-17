@@ -99,7 +99,7 @@ checkRC () {
 }
 checkRC
 checkVersion
-messageHandler "${osxNote}" "${ttyNote}" "${logNote}"
+messageHandler "${osxNote}" 0 "${logNote}"
 messageStatus=$?
 
 
@@ -129,6 +129,23 @@ init () {
     exit 1
   fi
   #
+  if [[ ! -v osxNote && ! -n "${osxNote}" ]]; then
+    printf '%s' "osxNote must be defined and non-null!"
+    exit 1
+  fi
+  #
+  if [[ ! -v ttyNote && ! -n "${ttyNote}" ]]; then
+    printf '%s' "ttyNote must be defined and non-null!"
+    exit 1
+  fi
+  #
+  if [[ ! -v logNote && ! -n "${logNote}" ]]; then
+    printf '%s' "logNote must be defined and non-null!"
+    exit 1
+  fi
+
+
+
 }
 # Reset log file. (user should have a choice in the matter)
 #>"${_LOG}" # create/reset log, might be causing trouble with readline
