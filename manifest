@@ -51,6 +51,8 @@ _Minor="${BASH_VERSINFO[1]}"
 _Version="${_Major}.${_Minor}"
 _requiredVersion=4.2
 #
+_NS="MANIFEST"
+#
 notify () {
   if ((messageStatus & notify)); then
     osascript -e "display notification \"$1\" with title \"manifest \""
@@ -184,8 +186,7 @@ __services () {
 
   type lunchy &>/dev/null || { printf "I require the lunchy gem but it's not installed. Aborting."; exit 1;}
 
-  lunchy list > "${_BASE}${USER}.background-services.txt"
-
+  saveFile "${USER}.background-services.txt" `lunchy list`
 
   notify "Generating ${FUNCNAME[0]#__} manifest of ${_OWNER}..."
   notify "${FUNCNAME[0]} is complete."
@@ -207,7 +208,9 @@ EOM
   notify "Generating ${FUNCNAME[0]#__} manifest..."
   #thanks to arturkomarov @ disqus
 
-  gem list | sed 's/(//'|sed 's/)//'|awk '{print "gem install " $1 " --version=" $2}' > "${_BASE}local.gems.${gemv}.txt"
+  saveFile "local.gems.${gemv}.txt" \
+           `gem list | sed 's/(//'|sed 's/)//'|awk '{print "gem install " $1 " --version=" $2}'`
+ 
   #
   notify "${FUNCNAME[0]#__} is complete."
 }
@@ -226,7 +229,9 @@ EOM
   nodev=$(node --version)
 
   notify "Generating ${FUNCNAME[0]#__} manifest..."
-  npm -g ls --json true --parseable true --depth=0 1> "${_BASE}npm-global.${nodev}.json" 2> "${_LOG}"
+
+  saveFile "npm-global.${nodev}.json" `npm -g ls --json true --parseable true --depth=0`
+  
   #
   # continue
   notify "${FUNCNAME[0]#__} is complete."
@@ -272,8 +277,10 @@ EOM
   notify "ROFL"
 
   notify "Generating $(sw_vers -productVersion) $(sw_vers -productVersion) manifest..."
-  printf "Archived:\n$(mdfind -onlyin /Applications/ kMDItemKind == Application | tee >(wc -l) | sort -f;) \n\n\n" > "${_BASE}system.apps.txt"
+#  printf "Archived:\n$(mdfind -onlyin /Applications/ kMDItemKind == Application | tee >(wc -l) | sort -f;) \n\n\n" > "${_BASE}system.apps.txt"
   #
+
+  saveFile "system.apps.txt" `find /Applications/ -iname *.app`
 
   notify "${FUNCNAME[0]} is complete."
 }
@@ -300,11 +307,15 @@ EOM
   type port &>/dev/null  || { echo >&2 "I require the Macports port, but it's not installed. Aborting."; exit 1; }
   # Credit: Macports
   notify "Generating ${FUNCNAME[0]#__} manifest..."
-  port -qv installed > "${_BASE}system.macports.txt"
+
+  saveFile "system.macports.txt" `port -qv installed`
+  
   notify "done."
 
   notify "Creating manifest of requested ports..."
 
+  #saveFile "system.macports-requested.txt" `port echo requested | cut -d ' ' -f 1"`
+  
   port echo requested | cut -d ' ' -f 1 > "${_BASE}system.macports-requested.txt"
   #
   notify "${FUNCNAME[0]#__} is complete."
@@ -370,6 +381,11 @@ __getUser() {
 ###################################
 # FUNCTION:
 
+saveFile() {
+  FN="${1}"
+  shift
+  echo $@ > "${_BASE}${_NS}.${FN}"
+}
 
 errorHandle() {
   osascript -e 'display notification "Someone setup us the bomb!" with title "Sorry, a system error occurred."'
