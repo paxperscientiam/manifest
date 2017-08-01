@@ -1,3 +1,4 @@
 track gitprojects by nameing them fully
 turn off print to tty when not execute by terminal
 need to manifest bins in user local
+find out how to backup fonts
