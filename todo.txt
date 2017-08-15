@@ -5,3 +5,5 @@ find out how to backup fonts
 should use namespacing
 should also have rotating
 need yarn too
+global composer stuff
+develop levels of verbosity
