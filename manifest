@@ -44,6 +44,7 @@ _isTerm=
 osxNote=0
 ttyNote=0
 logNote=0
+verbosity=0
 
 ## Check for version number
 _Major="${BASH_VERSINFO[0]}"
@@ -54,8 +55,14 @@ _requiredVersion=4.2
 _NS="MANIFEST"
 #
 notify () {
+  if ((messageStatus & verbosity)); then
+    msg="${1}${2}"
+  else
+    msg="${1}"
+  fi
+
   if ((messageStatus & notify)); then
-    osascript -e "display notification \"$1\" with title \"manifest \""
+    osascript -e "display notification \"$msg\" with title \"manifest \""
   fi
   if ((messageStatus & stdout)); then
     printf '%s.\n' "${1}" >/dev/tty
@@ -67,6 +74,7 @@ notify () {
 notify=$((1<<0))
 stdout=$((1<<1))
 log=$((1<<2))
+
 
 messageHandler() {
   n=$(($1*notify))
@@ -80,7 +88,7 @@ checkVersion () {
   if [[ $_Major -ge 4 && $_Minor -ge 2 ]]; then
     notify 'Version requirement met.'
   else
-    notify "Fail!. Version ${_requiredVersion} is required!"
+    notify "Fail!" "Version ${_requiredVersion} is required!"
     exit 1
   fi
 }
@@ -107,7 +115,6 @@ messageStatus=$?
 
 
 
-
 ###############################
 
 init () {
@@ -125,7 +132,7 @@ init () {
   ##
   # _BASE *must* be defined and non-null
   if [[ -v _BASE && -n "${_BASE}" && -d "/${_BASE}/" ]]; then
-    notify "_BASE is defined as ${_BASE,,//\/\//\/}"
+    notify "_BASE is defined" " as ${_BASE,,//\/\//\/}"
   else
     notify '_BASE must be defined and directory path must exist!'
     exit 1
@@ -161,6 +168,12 @@ __manifest() {
   notify "That is all, ${_OWNER}! (^.^)"
 }
 #
+
+__test() {
+printf 'fuck you'
+
+}
+
 #
 # FUNCTION: Copy dotfiles.
 __dot() {
@@ -210,7 +223,7 @@ EOM
 
   saveFile "local.gems.${gemv}.txt" \
            `gem list | sed 's/(//'|sed 's/)//'|awk '{print "gem install " $1 " --version=" $2}'`
- 
+
   #
   notify "${FUNCNAME[0]#__} is complete."
 }
@@ -231,7 +244,7 @@ EOM
   notify "Generating ${FUNCNAME[0]#__} manifest..."
 
   saveFile "npm-global.${nodev}.json" `npm -g ls --json true --parseable true --depth=0`
-  
+
   #
   # continue
   notify "${FUNCNAME[0]#__} is complete."
@@ -274,8 +287,6 @@ EOM
     exit 0
   fi
   #
-  notify "ROFL"
-
   notify "Generating $(sw_vers -productVersion) $(sw_vers -productVersion) manifest..."
 #  printf "Archived:\n$(mdfind -onlyin /Applications/ kMDItemKind == Application | tee >(wc -l) | sort -f;) \n\n\n" > "${_BASE}system.apps.txt"
   #
@@ -288,8 +299,10 @@ EOM
 __pip() {
   export PIP_REQUIRE_VIRTUALENV=false
   type pip &>/dev/null  || { echo >&2 "I require pip, but it's not installed. Aborting."; exit 1; }
+  pipv='pyversion'
+
   notify "Generating ${FUNCNAME[0]#__} manifest..."
-  pip list --format=columns > "${_BASE}pip.txt"
+  saveFile "pip.${pipv}.txt" `pip list --format=columns`
   notify "done."
 
 }
@@ -309,13 +322,13 @@ EOM
   notify "Generating ${FUNCNAME[0]#__} manifest..."
 
   saveFile "system.macports.txt" `port -qv installed`
-  
+
   notify "done."
 
   notify "Creating manifest of requested ports..."
 
   #saveFile "system.macports-requested.txt" `port echo requested | cut -d ' ' -f 1"`
-  
+
   port echo requested | cut -d ' ' -f 1 > "${_BASE}system.macports-requested.txt"
   #
   notify "${FUNCNAME[0]#__} is complete."
