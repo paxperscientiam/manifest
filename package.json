@@ -3,8 +3,9 @@
   "version": "0.8.2",
   "description": "A project dedicated to the paranoid.",
   "repository": "paxperscientiam/manifest",
-  "scripts": [
-    "manifest"
-  ],
+  "scripts": {
+    "generate-changelog": "github-changes -n ${npm_package_version} --use-commit-body",
+    "version": "npm run generate-changelog && git add CHANGELOG.md"
+  },
   "global": "true"
 }
