@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "A project dedicated to the paranoid.",
   "repository": "paxperscientiam/manifest",
   "scripts": {
