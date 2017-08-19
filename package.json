@@ -4,7 +4,7 @@
   "description": "A project dedicated to the paranoid.",
   "repository": "paxperscientiam/manifest",
   "scripts": {
-    "generate-changelog": "github-changes -o paxperscientiam -r manifest -f CHANGELOG.md -n ${npm_package_version} --only-pulls --use-commit-body",
+    "generate-changelog": "github-changes -o paxperscientiam -r manifest -f CHANGELOG.md --only-pulls --use-commit-body",
     "version": "npm run generate-changelog && git add CHANGELOG.md"
   },
   "global": "true"
