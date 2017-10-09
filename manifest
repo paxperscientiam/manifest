@@ -169,11 +169,6 @@ __manifest() {
 }
 #
 
-__test() {
-printf 'fuck you'
-
-}
-
 #
 # FUNCTION: Copy dotfiles.
 __dot() {
