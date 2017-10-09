@@ -174,9 +174,7 @@ __manifest() {
 __dot() {
   # Ensure the directory exists.
   if [[ $1 == 'help' ]]; then
-    cat <<EOM|boxes -d stone
-Backup User dotFiles found in the HOME directory.
-EOM
+    printf 'Backup User dotFiles found in the HOME directory.\n'
     exit 0
   fi
   # shellcheck disable=2174
@@ -204,9 +202,7 @@ __services () {
 # FUNCTION: Generate 'Gemfile' to use for reinstalling 'local' gems.
 __gem() {
   if [[ $1 == 'help' ]]; then
-    cat <<EOM|boxes -d stone
-Create an execute-ready manifest of ruby gems.
-EOM
+    printf 'Create an execute-ready manifest of ruby gems.\n'
     exit 0
   fi
   #
@@ -227,9 +223,7 @@ EOM
 # FUNCTION: Generate a 'package.json' for NPM global modules.
 __npm() {
   if [[ $1 == 'help' ]]; then
-    cat <<EOM|boxes -d stone
-Create a manifest of global npm modules.
-EOM
+    printf 'Create a manifest of global npm modules.\n'
     exit 0
   fi
   type npm &>/dev/null || { echo >&2 "I require npm but it's not installed. Aborting."; exit 1;}
@@ -249,9 +243,7 @@ EOM
 __emacs() {
 
   if [[ $1 == 'help' ]]; then
-    cat <<EOM | boxes -d stone
-derp
-EOM
+    printf 'Emacs is the One True Editor.\n'
     exit 0
   fi
   #test
@@ -276,9 +268,7 @@ EOM
 # Function: create system apps manifest.
 __sysApps() {
   if [[ $1 == 'help' ]]; then
-     cat <<EOM|boxes -d stone
-Create a manifest of Applications.
-EOM
+    printf 'Create a manifest of Applications.\n'
     exit 0
   fi
   #
@@ -306,9 +296,7 @@ __pip() {
 # # manifest of all installed macports ports
 __port() {
   if [[ $1 == 'help' ]]; then
-    cat <<EOM|boxes -d stone
-Create a manifest of installed and requested Macports ports.
-EOM
+    printf 'Create a manifest of installed and requested Macports ports.\n'
     exit 0
   fi
 
@@ -340,9 +328,7 @@ __cron() {
 #
 # __apache() {
 #   if [[ $1 == 'help' ]]; then
-#     cat <<EOM|boxes -d stone
 # This option will copy important server files.
-# EOM
 #     exit 0
 #   fi
 #   type httpd &>/dev/null || { echo >&2 "I require HTTPD but it's not installed. Aborting."; exit 1;}
