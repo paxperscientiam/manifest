@@ -272,11 +272,9 @@ __sysApps() {
     exit 0
   fi
   #
-  notify "Generating $(sw_vers -productVersion) $(sw_vers -productVersion) manifest..."
-#  printf "Archived:\n$(mdfind -onlyin /Applications/ kMDItemKind == Application | tee >(wc -l) | sort -f;) \n\n\n" > "${_BASE}system.apps.txt"
-  #
+  notify "Generating $(sw_vers -productVersion) manifest..."
 
-  saveFile "system.apps.txt" `find /Applications/ -iname *.app`
+  saveFile "system.apps.txt" `mdfind -onlyin /Applications/ kMDItemKind == Application | tee >(wc -l) | sort -f`
 
   notify "${FUNCNAME[0]} is complete."
 }
@@ -466,7 +464,7 @@ else
 	__manifest
 	;;
       v) #set option "v"
-	printf 'v0.8.8 β\n' >/dev/tty
+	printf 'v0.8.9 β\n' >/dev/tty
 	exit 0
 	;;
       h)  #show help
