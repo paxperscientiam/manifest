@@ -466,7 +466,7 @@ else
 	__manifest
 	;;
       v) #set option "v"
-	printf 'v0.8.3 β\n' >/dev/tty
+	printf 'v0.8.8 β\n' >/dev/tty
 	exit 0
 	;;
       h)  #show help
