@@ -265,6 +265,8 @@ __emacs() {
 
 }
 #
+
+
 # Function: create system apps manifest.
 __sysApps() {
   if [[ $1 == 'help' ]]; then
@@ -280,12 +282,11 @@ __sysApps() {
 }
 #
 __pip() {
-  export PIP_REQUIRE_VIRTUALENV=false
   type pip &>/dev/null  || { echo >&2 "I require pip, but it's not installed. Aborting."; exit 1; }
   pipv='pyversion'
 
   notify "Generating ${FUNCNAME[0]#__} manifest..."
-  saveFile "pip.${pipv}.txt" `pip list --format=columns`
+  saveFile "pip.${pipv}.txt" "`pip --isolated freeze`"
   notify "done."
 
 }
@@ -376,7 +377,7 @@ __getUser() {
 saveFile() {
   FN="${1}"
   shift
-  echo $@ > "${_BASE}${_NS}.${FN}"
+  echo "${@}" &> "${_BASE}${_NS}.${FN}"
 }
 
 errorHandle() {
