@@ -192,7 +192,7 @@ __services () {
 
   type lunchy &>/dev/null || { printf "I require the lunchy gem but it's not installed. Aborting."; exit 1;}
 
-  saveFile "${USER}.background-services.txt" `lunchy list`
+  saveFile "${USER}.background-services.txt" "`lunchy list`"
 
   notify "Generating ${FUNCNAME[0]#__} manifest of ${_OWNER}..."
   notify "${FUNCNAME[0]} is complete."
@@ -213,7 +213,7 @@ __gem() {
   #thanks to arturkomarov @ disqus
 
   saveFile "local.gems.${gemv}.txt" \
-           `gem list | sed 's/(//'|sed 's/)//'|awk '{print "gem install " $1 " --version=" $2}'`
+           "`gem list | sed 's/(//'|sed 's/)//'|awk '{print "gem install " $1 " --version=" $2}'`"
 
   #
   notify "${FUNCNAME[0]#__} is complete."
@@ -232,7 +232,7 @@ __npm() {
 
   notify "Generating ${FUNCNAME[0]#__} manifest..."
 
-  saveFile "npm-global.${nodev}.json" `npm -g ls --json true --parseable true --depth=0`
+  saveFile "npm-global.${nodev}.json" "`npm -g ls --json true --parseable true --depth=0`"
 
   #
   # continue
@@ -276,7 +276,7 @@ __sysApps() {
   #
   notify "Generating $(sw_vers -productVersion) manifest..."
 
-  saveFile "system.apps.txt" `mdfind -onlyin /Applications/ kMDItemKind == Application | tee >(wc -l) | sort -f`
+  saveFile "system.apps.txt" "`mdfind -onlyin /Applications/ kMDItemKind == Application | tee >(wc -l) | sort -f`"
 
   notify "${FUNCNAME[0]} is complete."
 }
@@ -303,7 +303,7 @@ __port() {
   # Credit: Macports
   notify "Generating ${FUNCNAME[0]#__} manifest..."
 
-  saveFile "system.macports.txt" `port -qv installed`
+  saveFile "system.macports.txt" "`port -qv installed`"
 
   notify "done."
 
