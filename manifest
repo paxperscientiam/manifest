@@ -199,7 +199,8 @@ __services () {
 #
 # composer global
 __composer() {
-  type composer &>/dev/null || { printf "I require GEM but it's not installed. Aborting."; exit 1;}
+  type compsoser &>/dev/null
+  [[ $? -ne 0 ]] && printf "I require GEM but it's not installed. Aborting."; exit 1;
   if [[ -z "${COMPOSER_HOME}" ]];then
     COMPOSER_HOME="${HOME}/composer.json"
   fi
