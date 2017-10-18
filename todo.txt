@@ -10,3 +10,4 @@ develop levels of verbosity
 whatabout fonts?
 level 1 verb something happened level 2 values for somethings
 sanitize variables
+use exit codes when testing program presence

@@ -189,7 +189,6 @@ __dot() {
 #
 # FUNCTION manifest of background services
 __services () {
-
   type lunchy &>/dev/null || { printf "I require the lunchy gem but it's not installed. Aborting."; exit 1;}
 
   saveFile "${USER}.background-services.txt" "`lunchy list`"
@@ -197,7 +196,17 @@ __services () {
   notify "Generating ${FUNCNAME[0]#__} manifest of ${_OWNER}..."
   notify "${FUNCNAME[0]} is complete."
 }
-
+#
+# composer global
+__composer() {
+  type composer &>/dev/null || { printf "I require GEM but it's not installed. Aborting."; exit 1;}
+  if [[ -z "${COMPOSER_HOME}" ]];then
+    COMPOSER_HOME="${HOME}/composer.json"
+  fi
+  if [[ -r "${COMPOSER_HOME}/composer.json" ]]; then
+    /bin/cp "${COMPOSER_HOME}/composer.json" "${_BASE}"
+  fi
+}
 
 # FUNCTION: Generate 'Gemfile' to use for reinstalling 'local' gems.
 __gem() {
