@@ -1,11 +1,7 @@
 {
   "name": "manifest",
-  "version": "0.8.7",
   "description": "A project dedicated to the paranoid.",
   "repository": "paxperscientiam/manifest",
-  "scripts": {
-    "generate-changelog": "github-changes -o paxperscientiam -r manifest -f CHANGELOG.md --only-pulls --use-commit-body",
-    "version": "npm run generate-changelog && git add CHANGELOG.md"
-  },
-  "global": "true"
+  "global": "true",
+  "install": "make install"
 }
