@@ -112,9 +112,6 @@ checkVersion
 messageHandler "${osxNote}" 0 "${logNote}"
 messageStatus=$?
 
-
-
-
 ###############################
 
 init () {
@@ -455,7 +452,7 @@ else
 	shift $((OPTIND-1))
 	if [[ -z "${1}" ]]; then
 	  arr=(`compgen -A function | grep '__' | sed 's/__//g'`)
-    printf '%-14s status\n' "bin"
+    printf '%-14s STATUS\n' "COMMAND"
     printf '%.0s-' {1..30}; echo
     for tttt in "${arr[@]}"
     do
@@ -493,7 +490,7 @@ else
 	               __manifest
 	               ;;
                v) #set option "v"
-	               printf 'v0.8.9 β\n' >/dev/tty
+	               printf 'β\n' >/dev/tty
 	               exit 0
 	               ;;
                h)  #show help
