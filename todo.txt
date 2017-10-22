@@ -13,3 +13,6 @@ sanitize variables
 use exit codes when testing program presence
 function list should specify corresponding binary and command for manifest
 function list should specify corresponding binary and command for manifest
+how to properly write a log system
+only load code if program called corresponding
+namespace functions better

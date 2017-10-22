@@ -3,5 +3,8 @@
   "description": "A project dedicated to the paranoid.",
   "repository": "paxperscientiam/manifest",
   "global": "true",
-  "install": "make install"
+  "install": "make install",
+  "dependencies": {
+    "progressbar": "edouard-lopez/progress-bar.sh#v1.1.5"
+  }
 }
