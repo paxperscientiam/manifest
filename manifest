@@ -113,7 +113,14 @@ messageHandler "${osxNote}" 0 "${logNote}"
 messageStatus=$?
 
 ###############################
+missing () {
+  printf "I require %s, but it was not found. Aborting.\n" "${1}" && exit 1;
+  exit 1
+}
 
+
+
+########
 init () {
   ## terminal check
   if [[ -t 0  || -t 1 ]]; then
@@ -186,7 +193,9 @@ __dot() {
 #
 # FUNCTION manifest of background services
 __services () {
-  type lunchy &>/dev/null || { printf "I require the lunchy gem but it's not installed. Aborting."; exit 1;}
+  type lunchy &>/dev/null
+  [[ $? -ne 0 ]] && \
+    missing "lunchy (a ruby gem)"
 
   saveFile "${USER}.background-services.txt" "`lunchy list`"
 
@@ -196,8 +205,10 @@ __services () {
 #
 # composer global
 __composer() {
-  type compsoser &>/dev/null
-  [[ $? -ne 0 ]] && printf "I require %s but it's not installed. Aborting." "${FUNCNAME[0]#__}"; exit 1;
+  type composer &>/dev/null
+  [[ $? -ne 0 ]] && \
+    missing "${FUNCNAME[0]#__}"
+  #
   if [[ -z "${COMPOSER_HOME}" ]];then
     COMPOSER_HOME="${HOME}/composer.json"
   fi
@@ -213,7 +224,10 @@ __gem() {
     exit 0
   fi
   #
-  type gem &>/dev/null || { printf "I require GEM but it's not installed. Aborting."; exit 1;}
+  type gem &>/dev/null
+  [[ $? -ne 0 ]] && \
+    missing "${FUNCNAME[0]#__}"
+  
   gemv=$(gem --version)
   # need to properly parse output so that it can used on the command line
   notify "Generating ${FUNCNAME[0]#__} manifest..."
@@ -299,7 +313,9 @@ pyv=$(getPYVersion)
 
 
 __pip() {
-  type pip &>/dev/null  || { echo >&2 "I require pip, but it's not installed. Aborting."; exit 1; }
+  type pip &>/dev/null
+  [[ $? -ne 0 ]] && \
+    missing "${FUNCNAME[0]#__}"
 
   notify "Generating ${FUNCNAME[0]#__} manifest..."
   saveFile "pip.py${pyv}.txt" "`pip --isolated freeze`"
@@ -314,7 +330,10 @@ __port() {
     exit 0
   fi
 
-  type port &>/dev/null  || { echo >&2 "I require the Macports port, but it's not installed. Aborting."; exit 1; }
+  type port &>/dev/null
+  [[ $? -ne 0 ]] && \
+    missing "${FUNCNAME[0]#__}"
+  #
   # Credit: Macports
   notify "Generating ${FUNCNAME[0]#__} manifest..."
 
