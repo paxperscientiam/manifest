@@ -74,7 +74,6 @@ messageHandler() {
 
 
 source ./lib/check-version 
-
 checkVersion 42
 [[ $? -ne 0 ]] && exit 1
 
@@ -98,6 +97,8 @@ init () {
   fi
   ##
   ##
+  source ./lib/verify-path
+  verifyPath "${_BASE}"
   ##
   # test if variable is defined and non-null
   if [[ ! -v _BASE || ! -n "${_BASE}" ]]; then
