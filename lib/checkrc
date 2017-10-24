@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# check for config file
+checkRC () {
+  SOURCE="${BASH_SOURCE[-1]}"
+  while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+  done
+  _CWD="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  #
+  if [[ -f "${_CWD}/${1}" ]]; then
+    printf "RC file found in current working directory."
+    . "${_CWD}/${1}"
+    return
+  elif [[ -f "${HOME}/${1}" ]]; then
+    printf "RC file found in home directory."
+    . "${HOME}/${1}"
+    return
+  else
+    printf '%s' 'Configuration file is required!'
+    exit 1
+  fi
+}

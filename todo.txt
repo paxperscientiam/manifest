@@ -17,3 +17,4 @@ how to properly write a log system
 only load code if program called corresponding
 namespace functions better
 separate out source aux functions
+adopt some exit code status

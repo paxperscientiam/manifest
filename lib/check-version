@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+checkVersion () {
+  _Major="${BASH_VERSINFO[0]}"
+  _Minor="${BASH_VERSINFO[1]}"
+  [[ "${1}" -le "${_Major}${_Minor}" ]] && return 0
+  return 1
+}

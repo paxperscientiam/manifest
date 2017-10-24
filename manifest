@@ -18,19 +18,11 @@
 ###################################
 # SECTION: Variables.
 ###################################
-# Script Owner (GNU Bash on Darwin)
-SOURCE="${BASH_SOURCE[0]}"
-while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-done
-_CWD="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-#
+source ./lib/checkrc 
+checkRC ".manifestrc"
+
 _OWNER="$(/usr/bin/stat -f %Su "${BASH_SOURCE[0]}")" # Find script owner
-_RC_CWD="${_CWD}/.manifestrc"
-_RC_HOME="${HOME}/.manifestrc"
-#
+
 _LOG="${HOME}/Library/logs/manifest.log"
 ###################################
 # SECTION: Prepare environment.
@@ -46,11 +38,6 @@ ttyNote=0
 logNote=0
 verbosity=0
 
-## Check for version number
-_Major="${BASH_VERSINFO[0]}"
-_Minor="${BASH_VERSINFO[1]}"
-_Version="${_Major}.${_Minor}"
-_requiredVersion=4.2
 #
 _NS="MANIFEST"
 #
@@ -84,31 +71,15 @@ messageHandler() {
   return $((n|s|l))
 }
 
-checkVersion () {
-  if [[ $_Major -ge 4 && $_Minor -ge 2 ]]; then
-    notify 'Version requirement met.'
-  else
-    notify "Fail!" "Version ${_requiredVersion} is required!"
-    exit 1
-  fi
-}
 
-# check for config file
-checkRC () {
-  if [[ -f "${_RC_CWD}" ]]; then
-    #    notify "RC file found in current working directory."
-    . "${_RC_CWD}"
-  elif [[ -f "${_RC_HOME}" ]]; then
-    #   notify "RC file found in home directory."
-    . "${_RC_HOME}"
-    return
-  else
-    printf '%s' 'Configuration file is required!'
-    exit 1
-  fi
-}
-checkRC
-checkVersion
+source ./lib/check-version 
+
+checkVersion 44
+echo $?
+exit
+[[ $? -ne 0 ]] #&& exit 1
+echo $?
+
 messageHandler "${osxNote}" 0 "${logNote}"
 messageStatus=$?
 
@@ -117,9 +88,6 @@ missing () {
   printf "I require %s, but it was not found. Aborting.\n" "${1}" && exit 1;
   exit 1
 }
-
-
-
 ########
 init () {
   ## terminal check
@@ -205,6 +173,7 @@ __services () {
 #
 # composer global
 __composer() {
+  progress-bar 5 
   type composer &>/dev/null
   [[ $? -ne 0 ]] && \
     missing "${FUNCNAME[0]#__}"
@@ -406,7 +375,7 @@ __getUser() {
 ###################################
 # SECTION: Auxilary Functions.
 ###################################
-source ./lib/aux.sh 
+source ./lib/aux
 #
 #
 #
@@ -510,11 +479,10 @@ else
     esac
   done
   #
-  #########
+  ####################
   # LOAD DEPENDENCIES
-  ########
+  ####################
   source ./deps/progress-bar.sh
-  #
   #
   #
   for tryFunction in "${@}"

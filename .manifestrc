@@ -1,9 +1,9 @@
-#!/opt/local/bin/bash
+#!/usr/bin/env bash
 ###################################
 # Where output is manifested.
 # (example)
 
-_BASE=""
+_BASE="./"
 
 osxNote=0
 ttyNote=1
