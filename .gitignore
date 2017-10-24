@@ -1,1 +1,3 @@
+output/
 deps/
+.manifestrc

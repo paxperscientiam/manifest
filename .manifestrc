@@ -3,8 +3,8 @@
 # Where output is manifested.
 # (example)
 
-_BASE="./"
+_BASE="./output//"
 
-osxNote=0
+osxNote=1
 ttyNote=1
 logNote=0

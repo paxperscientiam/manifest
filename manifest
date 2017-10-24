@@ -20,6 +20,8 @@
 ###################################
 source ./lib/checkrc 
 checkRC ".manifestrc"
+#@clean
+
 
 _OWNER="$(/usr/bin/stat -f %Su "${BASH_SOURCE[0]}")" # Find script owner
 
@@ -27,16 +29,15 @@ _LOG="${HOME}/Library/logs/manifest.log"
 ###################################
 # SECTION: Prepare environment.
 ###################################
-# required for nice globbing stuff
 ## resets
-_BASE=
-_isTerm=
+# _BASE=
+# _isTerm=
 
 #cannot be null!
-osxNote=0
-ttyNote=0
-logNote=0
-verbosity=0
+# osxNote=0
+# ttyNote=0
+# logNote=0
+# verbosity=0
 
 #
 _NS="MANIFEST"
@@ -74,11 +75,8 @@ messageHandler() {
 
 source ./lib/check-version 
 
-checkVersion 44
-echo $?
-exit
-[[ $? -ne 0 ]] #&& exit 1
-echo $?
+checkVersion 42
+[[ $? -ne 0 ]] && exit 1
 
 messageHandler "${osxNote}" 0 "${logNote}"
 messageStatus=$?
@@ -101,14 +99,30 @@ init () {
   ##
   ##
   ##
-  ##
-  # _BASE *must* be defined and non-null
-  if [[ -v _BASE && -n "${_BASE}" && -d "/${_BASE}/" ]]; then
-    notify "_BASE is defined" " as ${_BASE,,//\/\//\/}"
-  else
-    notify '_BASE must be defined and directory path must exist!'
+  # test if variable is defined and non-null
+  if [[ ! -v _BASE || ! -n "${_BASE}" ]]; then
+    notify '_BASE *must* be defined and non-null'
     exit 1
   fi
+
+  # test is relative or absolute
+  if [[ "${_BASE}" = /* ]];then
+    :
+  else    
+    _BASE="/${_CWD}/${_BASE}"
+  fi
+  
+  # test if directory exists
+  if [[ ! -d "${_BASE}" ]]; then
+    notify '_BASE path must exist!'
+    exit 1
+  fi
+  # test if directory is writeable
+  if [[ ! -w "${_BASE}" ]]; then
+    notify '_BASE path must be writable!'
+    exit
+  fi
+  #  echo "${_BASE//\/\//\/}"
   #
   if [[ ! -v osxNote && ! -n "${osxNote}" ]]; then
     printf '%s' "osxNote must be defined and non-null!"
@@ -124,9 +138,6 @@ init () {
     printf '%s' "logNote must be defined and non-null!"
     exit 1
   fi
-
-
-
 }
 # Reset log file. (user should have a choice in the matter)
 #>"${_LOG}" # create/reset log, might be causing trouble with readline
@@ -173,7 +184,7 @@ __services () {
 #
 # composer global
 __composer() {
-  progress-bar 5 
+  #  progress-bar 5 
   type composer &>/dev/null
   [[ $? -ne 0 ]] && \
     missing "${FUNCNAME[0]#__}"
@@ -377,8 +388,6 @@ __getUser() {
 ###################################
 source ./lib/aux
 #
-#
-#
 ###################################
 # SECTION: Execute.
 ###################################
@@ -414,75 +423,75 @@ else
     case $FLAG in
       a) #set a
         shift $((OPTIND-1))
-	echo win >/dev/tty
-	exit 0
-	;;
+	      echo win >/dev/tty
+	      exit 0
+	      ;;
       c) #--config
         shift $((OPTIND-1))
         printf "%b" "This option is not ready. Stay tuned!"
         exit 0
-	;;
+	      ;;
       f)  #set option "f"
-	shift $((OPTIND-1))
-	if [[ -z "${1}" ]]; then
-	  arr=(`compgen -A function | grep '__' | sed 's/__//g'`)
-    printf '%-14s STATUS\n' "COMMAND"
-    printf '%.0s-' {1..30}; echo
-    for tttt in "${arr[@]}"
-    do
-      type -p "${tttt}" &>/dev/null
-      if [[ $? == 0 ]]; then
-        printf '%-14s found\n' "${tttt}"
-      else
-        printf '%-14s not found\n' "${tttt}"
-      fi
-    done
-	else
-	  if ( compgen -A function "__${1}"); then
-	    eval "__${1}" 'help'
-	  else
-	    echo "Function '${1}' not found." >/dev/tty
-	  fi
-	fi
-	exit 0
-	;;
+	      shift $((OPTIND-1))
+	      if [[ -z "${1}" ]]; then
+	        arr=(`compgen -A function | grep '__' | sed 's/__//g'`)
+          printf '%-14s STATUS\n' "COMMAND"
+          printf '%.0s-' {1..30}; echo
+          for tttt in "${arr[@]}"
+          do
+            type -p "${tttt}" &>/dev/null
+            if [[ $? == 0 ]]; then
+              printf '%-14s found\n' "${tttt}"
+            else
+              printf '%-14s not found\n' "${tttt}"
+            fi
+          done
+	      else
+	        if ( compgen -A function "__${1}"); then
+	          eval "__${1}" 'help'
+	        else
+	          echo "Function '${1}' not found." >/dev/tty
+	        fi
+	      fi
+	      exit 0
+	      ;;
       i) #--init
 	      echo "Initialize configuration file?" >/dev/tty
 	      exit 0
-	               ;;
-               n) # use osx notifications
-	               shift $((OPTIND-1))
-	               break
-	               ;;
-               q) # set 'q'
-	               __manifest &> /dev/null &
-	               exit 0
-	               ;;
-               t) # set 't'
-	               shift $((OPTIND-1))
-	               sytem=1
-	               __manifest
-	               ;;
-               v) #set option "v"
-	               printf 'β\n' >/dev/tty
-	               exit 0
-	               ;;
-               h)  #show help
-	               func_menu_help
-	               exit 0
-	               ;;
-               \?) #unrecognized option - show help
-	               printf 'Unknown option.\n'
-	               printf 'Use -h for helpful info.\n'
-	               exit 2
-	               ;;
+	      ;;
+      n) # use osx notifications
+	      shift $((OPTIND-1))
+	      break
+	      ;;
+      q) # set 'q'
+	      __manifest &> /dev/null &
+	      exit 0
+	      ;;
+      t) # set 't'
+	      shift $((OPTIND-1))
+	      sytem=1
+	      __manifest
+	      ;;
+      v) #set option "v"
+	      printf 'β\n' >/dev/tty
+	      exit 0
+	      ;;
+      h)  #show help
+	      func_menu_help
+	      exit 0
+	      ;;
+      \?) #unrecognized option - show help
+	      printf 'Unknown option.\n'
+	      printf 'Use -h for helpful info.\n'
+	      exit 2
+	      ;;
     esac
   done
   #
   ####################
   # LOAD DEPENDENCIES
   ####################
-  source ./deps/progress-bar.sh
+  #source ./deps/progress-bar.sh
   #
   #
   for tryFunction in "${@}"
