@@ -330,6 +330,10 @@ EOM
 init
 #
 #
+if [[ "$-" == *x* ]]; then
+  echo debug
+fi
+
 if ((!$#))
 then
   __manifest
@@ -403,22 +407,6 @@ else
     esac
   done
   #
-  ####################
-  # LOAD DEPENDENCIES
-  ####################
-  #source ./deps/progress-bar.sh
-  #
-  #
-  for tryFunction in "${@}"
-  do
-    if type -t "__$tryFunction" >/dev/null; then
-      "__$tryFunction" false
-      shift
-    else
-      printf 'Invalid choice.\n'
-      exit 1
-    fi
-  done
 fi
 #
 #
@@ -434,3 +422,7 @@ exit
 # Louis Marascio
 # Emacs, Gem, Macports, NPM
 # #bash on Freenode
+build () {
+  cat $0
+}
+build
