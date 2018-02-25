@@ -66,7 +66,7 @@ notify () {
     osascript -e "display notification \"$msg\" with title \"manifest \""
   fi
   if ((messageStatus & stdout)); then
-    printf '%s.\n' "${1}" >/dev/tty
+    printf '%s.\n' "${1}"
   fi
   if ((messageStatus & log)); then
     echo "LOOOOL"
@@ -125,10 +125,8 @@ __manifest() {
 
 
 # FUNCTION manifest of background services
-__services () {
-  #type lunchy &>/dev/null && missing "lunchy (a ruby gem)"
-
-  exit
+__lunchy () {
+  type lunchy &>/dev/null && missing "lunchy (a ruby gem)"
 
   saveFile "${USER}.background-services.txt" "`lunchy list`"
 
@@ -283,7 +281,7 @@ __port() {
 
   #saveFile "system.macports-requested.txt" `port echo requested | cut -d ' ' -f 1"`
 
-  port echo requested | cut -d ' ' -f 1 > "${_BASE}system.macports-requested.txt"
+  port echo requested | cut -d ' ' -f 1 > "${_BASE}/MANIFEST.system.macports-requested.txt"
   #
   notify "${FUNCNAME[0]#__} is complete."
 }
@@ -297,7 +295,7 @@ __cron() {
 }
 #
 #
-__getUser() {
+getUser() {
   /usr/bin/stat -f %Su "${BASH_SOURCE[0]}"
 }
 #
@@ -340,7 +338,7 @@ else
     case $FLAG in
       a) #set a
         shift $((OPTIND-1))
-	      echo win >/dev/tty
+	      echo win
 	      exit 0
 	      ;;
       c) #--config
@@ -356,8 +354,8 @@ else
           printf '%.0s-' {1..30}; echo
           for tttt in "${arr[@]}"
           do
-            type -p "${tttt}" &>/dev/null
-            if [[ $? == 0 ]]; then
+            if type -p "${tttt}" &>/dev/null
+            then
               printf '%-14s found\n' "${tttt}"
             else
               printf '%-14s not found\n' "${tttt}"
@@ -367,7 +365,7 @@ else
 	        if ( compgen -A function "__${1}"); then
 	          eval "__${1}" 'help'
 	        else
-	          echo "Function '${1}' not found." >/dev/tty
+	          printf 'Function %s not found.\n' "${1}"
 	        fi
 	      fi
 	      exit 0
@@ -385,12 +383,12 @@ else
 	      exit 0
 	      ;;
       t) # set 't'
-	      shift $((OPTIND-1))
-	      sytem=1
-	      __manifest
+	     # shift $((OPTIND-1))
+	      #system=1
+	      #__manifest
 	      ;;
       v) #set option "v"
-	      printf 'β\n' >/dev/tty
+	      printf 'β\n'
 	      exit 0
 	      ;;
       h)  #show help
