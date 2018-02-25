@@ -1,10 +1,16 @@
-#!/usr/bin/env bash
+#!/opt/local/bin/bash
+# shellcheck disable=2034
 ###################################
 # Where output is manifested.
 # (example)
 
-_BASE="./output//"
 
-osxNote=1
+# (required) this is the root folder, which can be absolutly specified or relative to CWD of script.
+_BASE="base-example/"
+
+# (optional) 1 or 0 for toggling system notifications
+osxNote=0
+# (optional) 1 or 0 for toggling terminal notifcations
 ttyNote=1
+# (optional) 1 or 0 for toggling file logging
 logNote=0

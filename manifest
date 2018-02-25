@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck disable=1090
+# shellcheck disable=2154
 ###################################
 # Disclaimer: THIS IS AN ACTIVE EXPERIMENT. EXECUTE AT YOUR OWN PERIL.
 ###################################
@@ -18,29 +20,40 @@
 ###################################
 # SECTION: Variables.
 ###################################
-source ./lib/checkrc 
+checkRC () {
+  SOURCE="${BASH_SOURCE[-1]}"
+  while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+  done
+  _CWD="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  #
+  if [[ -f "${_CWD}/${1}" ]]; then
+    printf '%s\n' "RC file found in current working directory."
+    . "${_CWD}/${1}"
+    return
+  elif [[ -f "${HOME}/${1}" ]]; then
+    printf '%s\n' "RC file found in home directory."
+    . "${HOME}/${1}"
+    return
+  else
+    printf '%s' 'Configuration file is required!'
+    exit 1
+  fi
+}
 checkRC ".manifestrc"
-#@clean
 
 
-_OWNER="$(/usr/bin/stat -f %Su "${BASH_SOURCE[0]}")" # Find script owner
+source "${_CWD}/src/env"
+source "${_CWD}/src/check-version"
+source "${_CWD}/src/verify-path"
+source "${_CWD}/src/aux"
 
-_LOG="${HOME}/Library/logs/manifest.log"
-###################################
-# SECTION: Prepare environment.
-###################################
-## resets
-# _BASE=
-# _isTerm=
 
-#cannot be null!
-# osxNote=0
-# ttyNote=0
-# logNote=0
-# verbosity=0
+
 
 #
-_NS="MANIFEST"
 #
 notify () {
   if ((messageStatus & verbosity)); then
@@ -72,17 +85,15 @@ messageHandler() {
   return $((n|s|l))
 }
 
+checkVersion 42 || exit 1
 
-source ./lib/check-version 
-checkVersion 42
-[[ $? -ne 0 ]] && exit 1
 
-messageHandler "${osxNote}" 0 "${logNote}"
+messageHandler "${osxNote}" "${ttyNote}" "${logNote}"
 messageStatus=$?
 
 ###############################
 missing () {
-  printf "I require %s, but it was not found. Aborting.\n" "${1}" && exit 1;
+  printf "I require %s, but it was not found. Aborting.\\n" "${1}" && exit 1;
   exit 1
 }
 ########
@@ -97,7 +108,6 @@ init () {
   fi
   ##
   ##
-  source ./lib/verify-path
   verifyPath "${_BASE}"
   ##
   # test if variable is defined and non-null
@@ -109,10 +119,10 @@ init () {
   # test is relative or absolute
   if [[ "${_BASE}" = /* ]];then
     :
-  else    
+  else
     _BASE="/${_CWD}/${_BASE}"
   fi
-  
+
   # test if directory exists
   if [[ ! -d "${_BASE}" ]]; then
     notify '_BASE path must exist!'
@@ -122,22 +132,6 @@ init () {
   if [[ ! -w "${_BASE}" ]]; then
     notify '_BASE path must be writable!'
     exit
-  fi
-  #  echo "${_BASE//\/\//\/}"
-  #
-  if [[ ! -v osxNote && ! -n "${osxNote}" ]]; then
-    printf '%s' "osxNote must be defined and non-null!"
-    exit 1
-  fi
-  #
-  if [[ ! -v ttyNote && ! -n "${ttyNote}" ]]; then
-    printf '%s' "ttyNote must be defined and non-null!"
-    exit 1
-  fi
-  #
-  if [[ ! -v logNote && ! -n "${logNote}" ]]; then
-    printf '%s' "logNote must be defined and non-null!"
-    exit 1
   fi
 }
 # Reset log file. (user should have a choice in the matter)
@@ -153,29 +147,12 @@ __manifest() {
 }
 #
 
-#
-# FUNCTION: Copy dotfiles.
-__dot() {
-  # Ensure the directory exists.
-  if [[ $1 == 'help' ]]; then
-    printf 'Backup User dotFiles found in the HOME directory.\n'
-    exit 0
-  fi
-  # shellcheck disable=2174
-  mkdir -p -m 744 "${_BASE}/dots/"
-  rsync -cpRz "${HOME}"/.??*[!~$] "${_BASE}/dots/"
-  rm -f "${_BASE}/dots/CLONE"*
-  touch "${_BASE}/dots/CLONE.$(timeStamp)"
-  #
-  notify "${FUNCNAME[0]#__} is complete."
-}
-#
-#
+
 # FUNCTION manifest of background services
 __services () {
-  type lunchy &>/dev/null
-  [[ $? -ne 0 ]] && \
-    missing "lunchy (a ruby gem)"
+  #type lunchy &>/dev/null && missing "lunchy (a ruby gem)"
+
+  exit
 
   saveFile "${USER}.background-services.txt" "`lunchy list`"
 
@@ -185,10 +162,11 @@ __services () {
 #
 # composer global
 __composer() {
-  #  progress-bar 5 
-  type composer &>/dev/null
-  [[ $? -ne 0 ]] && \
+  #  progress-bar 5
+  if ! type composer &>/dev/null
+  then
     missing "${FUNCNAME[0]#__}"
+  fi
   #
   if [[ -z "${COMPOSER_HOME}" ]];then
     COMPOSER_HOME="${HOME}/composer.json"
@@ -205,10 +183,11 @@ __gem() {
     exit 0
   fi
   #
-  type gem &>/dev/null
-  [[ $? -ne 0 ]] && \
+  if ! type gem &>/dev/null
+  then
     missing "${FUNCNAME[0]#__}"
-  
+  fi
+
   gemv=$(gem --version)
   # need to properly parse output so that it can used on the command line
   notify "Generating ${FUNCNAME[0]#__} manifest..."
@@ -340,46 +319,6 @@ __cron() {
 }
 #
 #
-# __apache() {
-#   if [[ $1 == 'help' ]]; then
-# This option will copy important server files.
-#     exit 0
-#   fi
-#   type httpd &>/dev/null || { echo >&2 "I require HTTPD but it's not installed. Aborting."; exit 1;}
-#   # Permissions?
-#   _HTTPD_ROOT="$(httpd -V | grep -Po '(?<=HTTPD_ROOT\=\")[^"]*')"
-#   _HTTPD_SERVER_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po '(?<=SERVER_CONFIG_FILE\=\")[^"]*')"
-#   _HTTPD_VHOST_CONFIG="${_HTTPD_ROOT}/conf/extra/httpd-vhosts.conf"
-#   _HTTPD_MIME_CONFIG="${_HTTPD_ROOT}/$(httpd -V | grep -Po '(?<=AP_TYPES_CONFIG_FILE\=\")[^"]*')"
-
-#   #backup includes
-#   while IFS= read -r result
-#   do
-#     cp -p "${_HTTPD_ROOT}/${result}" "${_BASE}/serverFiles/"
-#   done < <(grep -iPo "(?<=include\s).*conf\/.*" /opt/local/apache2/conf/httpd.conf)
-
-
-# #type php &>/dev/null || { echo >&2 "I require HTTPD but it's not installed. Aborting."; exit 1;}
-
-# _PHP_INI="$(php -r 'echo php_ini_loaded_file();')"
-
-
-# # shellcheck disable=2174
-# mkdir -p -m 744 "${_BASE}/serverFiles/"
-# #
-# cp -p "${_HTTPD_SERVER_CONFIG}" \
-  #    "${_PHP_INI}" \
-  #    "${_HTTPD_VHOST_CONFIG}" \
-  #    '/etc/resolv.conf' \
-  #    '/etc/hosts' \
-  #    '/opt/local/etc/dnsmasq.conf' \
-  #    '/opt/local/apache2/conf/extra/mod_php56.conf' \
-  #    "${_HTTPD_MIME_CONFIG}" "${_BASE}/serverFiles/"
-
-# notify "${FUNCNAME[0]} is complete."
-# }
-
-#
 __getUser() {
   /usr/bin/stat -f %Su "${BASH_SOURCE[0]}"
 }
@@ -387,7 +326,6 @@ __getUser() {
 ###################################
 # SECTION: Auxilary Functions.
 ###################################
-source ./lib/aux
 #
 ###################################
 # SECTION: Execute.

@@ -8,6 +8,7 @@ checkRC () {
     [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
   done
   _CWD="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  echo $_CWD
   #
   if [[ -f "${_CWD}/${1}" ]]; then
     printf "RC file found in current working directory."
