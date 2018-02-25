@@ -45,6 +45,75 @@ fi
 checkRC ".manifestrc"
 
 
+#!/usr/bin/env bash
+# shellcheck disable=2034
+
+_OWNER="$(/usr/bin/stat -f %Su "${BASH_SOURCE[0]}")" # Find script owner
+_LOG="${HOME}/Library/logs/manifest.log"
+_NS="MANIFEST"
+
+osxNote=0
+ttyNote=1
+logNote=0
+verbosity=0
+#!/usr/bin/env bash
+checkVersion () {
+  _Major="${BASH_VERSINFO[0]}"
+  _Minor="${BASH_VERSINFO[1]}"
+  [[ "${1}" -le "${_Major}${_Minor}" ]] && return 0
+  return 1
+}
+#!/usr/bin/env bash
+
+
+verifyBase() {
+  # test if variable is defined and non-null
+  [[ ! "${#1}" -gt 0 ]] && \
+    notify '_BASE variable cannot be zero length!' && \
+    exit 1
+
+  # test is relative or absolute
+  if [[ "${1}" = /* ]];then
+    :
+  else
+    _BASE="/${_CWD}/${_BASE}"
+  fi
+
+
+  # test if directory exists
+  if [[ ! -d "${1}" ]]; then
+    notify '_BASE path must exist!'
+    exit 1
+  fi
+  # test if directory is writeable
+  if [[ ! -w "${1}" ]]; then
+    notify '_BASE path must be writable!'
+    exit 77
+  fi
+
+  return 0
+}
+#!/usr/bin/env bash
+
+###################################
+# SECTION:  Auxilary Functions.
+###################################
+
+saveFile() {
+  FN="${1}"
+  shift
+  echo "${@}" &> "${_BASE}${_NS}.${FN}"
+}
+
+errorHandle() {
+  osascript -e 'display notification "Someone setup us the bomb!" with title "Sorry, a system error occurred."'
+}
+
+# FUNCTION:
+timeStamp() {
+  date +%Y.%m.%d.%H.%M.%S
+}
+
 
 
 
@@ -326,11 +395,8 @@ EOM
 init
 #
 #
-if ((!$#))
-then
-__manifest
-else
-while getopts acfinq:tvh FLAG; do
+
+while getopts acfinq:tvsh FLAG; do
 case $FLAG in
 a) #set a
 shift $((OPTIND-1))
@@ -399,34 +465,8 @@ exit 2
 esac
 done
 #
-####################
-# LOAD DEPENDENCIES
-####################
-#source ./deps/progress-bar.sh
-#
-#
-for tryFunction in "${@}"
-do
-if type -t "__$tryFunction" >/dev/null; then
-"__$tryFunction" false
-shift
-else
-printf 'Invalid choice.\n'
-exit 1
+if [[ $DEBUG -eq 0 ]]
+then
+_CWD="${_CWD}"
+while read -ra words; do if [[ ${words[0]} == source ]]; then eval cat "${words[1]}"; else printf '%s\n' "${words[*]}"; fi; done < "${0}" >| "${_CWD}/dist/manifest"
 fi
-done
-fi
-#
-#
-exit
-#
-###################################
-# SECTION: Thanks, man.
-###################################
-# /u/geirha @ reddit
-# thkala @ SO
-# Dave Dopson @ SO ; http://stackoverflow.com/a/246128
-# /u/arturkomarov @ disqus
-# Louis Marascio
-# Emacs, Gem, Macports, NPM
-# #bash on Freenode

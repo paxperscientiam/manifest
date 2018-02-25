@@ -330,99 +330,78 @@ EOM
 init
 #
 #
-if [[ "$-" == *x* ]]; then
-  echo debug
-fi
 
-if ((!$#))
-then
-  __manifest
-else
-  while getopts acfinq:tvh FLAG; do
-    case $FLAG in
-      a) #set a
-        shift $((OPTIND-1))
-	      echo win
-	      exit 0
-	      ;;
-      c) #--config
-        shift $((OPTIND-1))
-        printf "%b" "This option is not ready. Stay tuned!"
-        exit 0
-	      ;;
-      f)  #set option "f"
-	      shift $((OPTIND-1))
-	      if [[ -z "${1}" ]]; then
-	        arr=(`compgen -A function | grep '__' | sed 's/__//g'`)
-          printf '%-14s STATUS\n' "COMMAND"
-          printf '%.0s-' {1..30}; echo
-          for tttt in "${arr[@]}"
-          do
-            if type -p "${tttt}" &>/dev/null
-            then
-              printf '%-14s found\n' "${tttt}"
-            else
-              printf '%-14s not found\n' "${tttt}"
-            fi
-          done
+while getopts acfinq:tvsh FLAG; do
+  case $FLAG in
+    a) #set a
+      shift $((OPTIND-1))
+	    echo win
+	    exit 0
+	    ;;
+    c) #--config
+      shift $((OPTIND-1))
+      printf "%b" "This option is not ready. Stay tuned!"
+      exit 0
+	    ;;
+    f)  #set option "f"
+	    shift $((OPTIND-1))
+	    if [[ -z "${1}" ]]; then
+	      arr=(`compgen -A function | grep '__' | sed 's/__//g'`)
+        printf '%-14s STATUS\n' "COMMAND"
+        printf '%.0s-' {1..30}; echo
+        for tttt in "${arr[@]}"
+        do
+          if type -p "${tttt}" &>/dev/null
+          then
+            printf '%-14s found\n' "${tttt}"
+          else
+            printf '%-14s not found\n' "${tttt}"
+          fi
+        done
+	    else
+	      if ( compgen -A function "__${1}"); then
+	        eval "__${1}" 'help'
 	      else
-	        if ( compgen -A function "__${1}"); then
-	          eval "__${1}" 'help'
-	        else
-	          printf 'Function %s not found.\n' "${1}"
-	        fi
+	        printf 'Function %s not found.\n' "${1}"
 	      fi
-	      exit 0
-	      ;;
-      i) #--init
-	      echo "Initialize configuration file?" >/dev/tty
-	      exit 0
-	      ;;
-      n) # use osx notifications
-	      shift $((OPTIND-1))
-	      break
-	      ;;
-      q) # set 'q'
-	      __manifest &> /dev/null &
-	      exit 0
-	      ;;
-      t) # set 't'
-	     # shift $((OPTIND-1))
-	      #system=1
-	      #__manifest
-	      ;;
-      v) #set option "v"
-	      printf 'β\n'
-	      exit 0
-	      ;;
-      h)  #show help
-	      func_menu_help
-	      exit 0
-	      ;;
-      \?) #unrecognized option - show help
-	      printf 'Unknown option.\n'
-	      printf 'Use -h for helpful info.\n'
-	      exit 2
-	      ;;
-    esac
-  done
-  #
+	    fi
+	    exit 0
+	    ;;
+    i) #--init
+	    echo "Initialize configuration file?" >/dev/tty
+	    exit 0
+	    ;;
+    n) # use osx notifications
+	    shift $((OPTIND-1))
+	    break
+	    ;;
+    q) # set 'q'
+	    __manifest &> /dev/null &
+	    exit 0
+	    ;;
+    t) # set 't'
+	    # shift $((OPTIND-1))
+	    #system=1
+	    #__manifest
+	    ;;
+    v) #set option "v"
+	    printf 'β\n'
+	    exit 0
+	    ;;
+    h)  #show help
+	    func_menu_help
+	    exit 0
+	    ;;
+    \?) #unrecognized option - show help
+	    printf 'Unknown option.\n'
+	    printf 'Use -h for helpful info.\n'
+	    exit 2
+	    ;;
+  esac
+done
+#
+if [[ $DEBUG -eq 0 ]]
+then
+  _CWD="${_CWD}"
+  while read -ra words; do if [[ ${words[0]} == source ]]; then eval cat "${words[1]}"; else printf '%s\n' "${words[*]}"; fi; done < "${0}" >| "${_CWD}/dist/manifest"
 fi
-#
-#
-exit
-#
-###################################
-# SECTION: Thanks, man.
-###################################
-# /u/geirha @ reddit
-# thkala @ SO
-# Dave Dopson @ SO ; http://stackoverflow.com/a/246128
-# /u/arturkomarov @ disqus
-# Louis Marascio
-# Emacs, Gem, Macports, NPM
-# #bash on Freenode
-build () {
-  cat $0
-}
-build
