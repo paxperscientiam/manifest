@@ -30,20 +30,23 @@ checkRC () {
   _CWD="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
   #
   if [[ -f "${_CWD}/${1}" ]]; then
-    printf '%s\n' "RC file found in current working directory."
+    [[ "${BUILD}" -ne 0 ]] && printf '%s\n' "RC file found in current working directory."
     . "${_CWD}/${1}"
     return
   elif [[ -f "${HOME}/${1}" ]]; then
-    printf '%s\n' "RC file found in home directory."
+    [[ "${BUILD}" -ne 0 ]] && printf '%s\n' "RC file found in home directory."
     . "${HOME}/${1}"
     return
   else
-    printf '%s' 'Configuration file is required!'
-    exit 1
+    [[ "${BUILD}" -ne 0 ]] && printf '%s' 'Configuration file is required!'
+    if [[ "${BUILD}" -ne 0 ]];then
+      exit 1
+    else
+      return
+    fi
   fi
 }
 checkRC ".manifestrc"
-
 
 source "${_CWD}/src/env"
 source "${_CWD}/src/check-version"
@@ -85,8 +88,10 @@ messageHandler() {
   return $((n|s|l))
 }
 
-checkVersion 42 || exit 1
-
+if ! checkVersion 42
+then
+  printf '%s\n' "Your version of \`bash\` is too old :("
+fi
 
 messageHandler "${osxNote}" "${ttyNote}" "${logNote}"
 messageStatus=$?
@@ -400,7 +405,7 @@ while getopts acfinq:tvsh FLAG; do
   esac
 done
 #
-if [[ $DEBUG -eq 0 ]]
+if [[ $BUILD -eq 0 ]]
 then
   _CWD="${_CWD}"
   install -b -m 755 /dev/null "${_CWD}/dist/manifest"; while read -ra words; do if [[ ${words[0]} == source ]]; then eval cat "${words[1]}"; else printf '%s\n' "${words[*]}"; fi; done < "${0}" >| "${_CWD}/dist/manifest"

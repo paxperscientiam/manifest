@@ -5,7 +5,11 @@ _OWNER="$(/usr/bin/stat -f %Su "${BASH_SOURCE[0]}")" # Find script owner
 _LOG="${HOME}/Library/logs/manifest.log"
 _NS="MANIFEST"
 
+if [[ ${BUILD} -eq 0 ]]; then
+  ttyNote=0
+else
+  ttyNote=1
+fi
 osxNote=0
-ttyNote=1
 logNote=0
 verbosity=0
