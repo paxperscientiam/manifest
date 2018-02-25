@@ -403,5 +403,5 @@ done
 if [[ $DEBUG -eq 0 ]]
 then
   _CWD="${_CWD}"
-  while read -ra words; do if [[ ${words[0]} == source ]]; then eval cat "${words[1]}"; else printf '%s\n' "${words[*]}"; fi; done < "${0}" >| "${_CWD}/dist/manifest"
+  install -b -m 755 /dev/null "${_CWD}/dist/manifest"; while read -ra words; do if [[ ${words[0]} == source ]]; then eval cat "${words[1]}"; else printf '%s\n' "${words[*]}"; fi; done < "${0}" >| "${_CWD}/dist/manifest"
 fi

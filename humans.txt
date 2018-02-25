@@ -1,5 +1,6 @@
 /* Thanks */
 freenode#bash
+irc://nchambers@freenode#bash
 /u/geirha @ reddit
 thkala @ SO
 Dave Dopson @ SO ; http://stackoverflow.com/a/246128
