@@ -1,22 +1,20 @@
 #!/usr/bin/env bash
 
 
-verifyPath() {
-  [[ -z "${1}" ]] && exit 1
-
+verifyBase() {
   # test if variable is defined and non-null
-  if [[ ! -v 1 || ! -n "${1}" ]]; then
-    notify 'Path *must* be defined and non-null'
+  [[ ! "${#1}" -gt 0 ]] && \
+    notify '_BASE variable cannot be zero length!' && \
     exit 1
-  fi
 
   # test is relative or absolute
   if [[ "${1}" = /* ]];then
     :
-  else    
+  else
     _BASE="/${_CWD}/${_BASE}"
   fi
-  
+
+
   # test if directory exists
   if [[ ! -d "${1}" ]]; then
     notify '_BASE path must exist!'
@@ -27,20 +25,6 @@ verifyPath() {
     notify '_BASE path must be writable!'
     exit 77
   fi
-  #  echo "${_1//\/\//\/}"
-  #
-  if [[ ! -v osxNote && ! -n "${osxNote}" ]]; then
-    printf '%s' "osxNote must be defined and non-null!"
-    exit 1
-  fi
-  #
-  if [[ ! -v ttyNote && ! -n "${ttyNote}" ]]; then
-    printf '%s' "ttyNote must be defined and non-null!"
-    exit 1
-  fi
-  #
-  if [[ ! -v logNote && ! -n "${logNote}" ]]; then
-    printf '%s' "logNote must be defined and non-null!"
-    exit 1
-  fi
+
+  return 0
 }

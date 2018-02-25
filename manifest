@@ -108,31 +108,7 @@ init () {
   fi
   ##
   ##
-  verifyPath "${_BASE}"
-  ##
-  # test if variable is defined and non-null
-  if [[ ! -v _BASE || ! -n "${_BASE}" ]]; then
-    notify '_BASE *must* be defined and non-null'
-    exit 1
-  fi
-
-  # test is relative or absolute
-  if [[ "${_BASE}" = /* ]];then
-    :
-  else
-    _BASE="/${_CWD}/${_BASE}"
-  fi
-
-  # test if directory exists
-  if [[ ! -d "${_BASE}" ]]; then
-    notify '_BASE path must exist!'
-    exit 1
-  fi
-  # test if directory is writeable
-  if [[ ! -w "${_BASE}" ]]; then
-    notify '_BASE path must be writable!'
-    exit
-  fi
+  verifyBase "${_BASE}"
 }
 # Reset log file. (user should have a choice in the matter)
 #>"${_LOG}" # create/reset log, might be causing trouble with readline
@@ -273,9 +249,10 @@ pyv=$(getPYVersion)
 
 
 __pip() {
-  type pip &>/dev/null
-  [[ $? -ne 0 ]] && \
+  if ! type pip &>/dev/null
+  then
     missing "${FUNCNAME[0]#__}"
+  fi
 
   notify "Generating ${FUNCNAME[0]#__} manifest..."
   saveFile "pip.py${pyv}.txt" "`pip --isolated freeze`"
@@ -290,9 +267,10 @@ __port() {
     exit 0
   fi
 
-  type port &>/dev/null
-  [[ $? -ne 0 ]] && \
+  if ! type port &>/dev/null
+  then
     missing "${FUNCNAME[0]#__}"
+  fi
   #
   # Credit: Macports
   notify "Generating ${FUNCNAME[0]#__} manifest..."
