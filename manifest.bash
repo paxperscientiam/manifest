@@ -402,6 +402,17 @@ while getopts acfinq:tvh FLAG; do
   esac
 done
 #
+for tryFunction in "${@}"
+do
+  if type -t "__$tryFunction" >/dev/null; then
+    "__$tryFunction" false
+    shift
+  else
+    printf 'Invalid choice.\n'
+    exit 1
+  fi
+done
+#
 if [[ $BUILD == 'GO' ]]
 then
   _CWD="${_CWD}"
