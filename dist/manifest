@@ -48,7 +48,6 @@ fi
 }
 checkRC ".manifestrc"
 
-
 #!/usr/bin/env bash
 # shellcheck disable=2034
 
@@ -158,8 +157,10 @@ l=$(($3*log))
 return $((n|s|l))
 }
 
-checkVersion 42 || exit 1
-
+if ! checkVersion 42
+then
+printf '%s\n' "Your version of \`bash\` is too old :("
+fi
 
 messageHandler "${osxNote}" "${ttyNote}" "${logNote}"
 messageStatus=$?
@@ -181,7 +182,7 @@ _isTerm=0
 fi
 ##
 ##
-verifyBase "${_BASE}"
+[[ $BUILD -ne 0 ]] && verifyBase "${_BASE}"
 }
 # Reset log file. (user should have a choice in the matter)
 #>"${_LOG}" # create/reset log, might be causing trouble with readline

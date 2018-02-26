@@ -113,7 +113,7 @@ init () {
   fi
   ##
   ##
-  verifyBase "${_BASE}"
+  [[ $BUILD -ne 0 ]] && verifyBase "${_BASE}"
 }
 # Reset log file. (user should have a choice in the matter)
 #>"${_LOG}" # create/reset log, might be causing trouble with readline
