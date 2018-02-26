@@ -29,21 +29,17 @@ checkRC () {
   done
   _CWD="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
   #
+  [[ $BUILD == 'GO' ]] && return
   if [[ -f "${_CWD}/${1}" ]]; then
-    [[ "${BUILD}" -ne 0 ]] && printf '%s\n' "RC file found in current working directory."
+    printf '%s\n' "RC file found in current working directory."
     . "${_CWD}/${1}"
     return
   elif [[ -f "${HOME}/${1}" ]]; then
-    [[ "${BUILD}" -ne 0 ]] && printf '%s\n' "RC file found in home directory."
+    printf '%s\n' "RC file found in home directory."
     . "${HOME}/${1}"
     return
   else
-    [[ "${BUILD}" -ne 0 ]] && printf '%s' 'Configuration file is required!'
-    if [[ "${BUILD}" -ne 0 ]];then
-      exit 1
-    else
-      return
-    fi
+    printf '%s' 'Configuration file is required!'
   fi
 }
 checkRC ".manifestrc"
@@ -113,7 +109,8 @@ init () {
   fi
   ##
   ##
-  [[ $BUILD -ne 0 ]] && verifyBase "${_BASE}"
+  [[ $BUILD == 'GO' ]] && return
+  verifyBase "${_BASE}"
 }
 # Reset log file. (user should have a choice in the matter)
 #>"${_LOG}" # create/reset log, might be causing trouble with readline
@@ -336,7 +333,7 @@ init
 #
 #
 
-while getopts acfinq:tvsh FLAG; do
+while getopts acfinq:tvh FLAG; do
   case $FLAG in
     a) #set a
       shift $((OPTIND-1))
@@ -373,7 +370,7 @@ while getopts acfinq:tvsh FLAG; do
 	    exit 0
 	    ;;
     i) #--init
-	    echo "Initialize configuration file?" >/dev/tty
+	    printf '%s\n' "Initialize configuration file?"
 	    exit 0
 	    ;;
     n) # use osx notifications

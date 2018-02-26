@@ -29,21 +29,17 @@ SOURCE="$(readlink "$SOURCE")"
 done
 _CWD="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 #
+[[ $BUILD == 'GO' ]] && return
 if [[ -f "${_CWD}/${1}" ]]; then
-[[ "${BUILD}" -ne 0 ]] && printf '%s\n' "RC file found in current working directory."
+printf '%s\n' "RC file found in current working directory."
 . "${_CWD}/${1}"
 return
 elif [[ -f "${HOME}/${1}" ]]; then
-[[ "${BUILD}" -ne 0 ]] && printf '%s\n' "RC file found in home directory."
+printf '%s\n' "RC file found in home directory."
 . "${HOME}/${1}"
 return
 else
-[[ "${BUILD}" -ne 0 ]] && printf '%s' 'Configuration file is required!'
-if [[ "${BUILD}" -ne 0 ]];then
-exit 1
-else
-return
-fi
+printf '%s' 'Configuration file is required!'
 fi
 }
 checkRC ".manifestrc"
@@ -182,7 +178,8 @@ _isTerm=0
 fi
 ##
 ##
-[[ $BUILD -ne 0 ]] && verifyBase "${_BASE}"
+[[ $BUILD == 'GO' ]] && return
+verifyBase "${_BASE}"
 }
 # Reset log file. (user should have a choice in the matter)
 #>"${_LOG}" # create/reset log, might be causing trouble with readline
