@@ -405,7 +405,7 @@ while getopts acfinq:tvsh FLAG; do
   esac
 done
 #
-if [[ $BUILD -eq 0 ]]
+if [[ $BUILD == 'GO' ]]
 then
   _CWD="${_CWD}"
   install -b -m 755 /dev/null "${_CWD}/dist/manifest"; while read -ra words; do if [[ ${words[0]} == source ]]; then eval cat "${words[1]}"; else printf '%s\n' "${words[*]}"; fi; done < "${0}" >| "${_CWD}/dist/manifest"
