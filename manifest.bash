@@ -39,7 +39,7 @@ checkRC () {
     . "${HOME}/${1}"
     return
   else
-    printf '%s' 'Configuration file is required!'
+    printf '%s\n' 'Configuration file is required!'
   fi
 }
 checkRC ".manifestrc"
