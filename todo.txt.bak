@@ -7,7 +7,7 @@ should also have rotating
 need yarn too
 global composer stuff
 develop levels of verbosity
-
+whatabout fonts?
 level 1 verb something happened level 2 values for somethings
 sanitize variables
 use exit codes when testing program presence
@@ -20,12 +20,3 @@ separate out source aux functions
 adopt some exit code status
 should also have a sanity check for variables
 what about a sanity lock
-if user doesnt set notify modes and there is an critical error then it should go to tty
-fix messaging problem not working properly
-need better messages
-need to use wait and etc
-remove things that are covered by mackup and also suggest mackup for configs
-add command completion
-i think manifests should be timestamped
-output should also indicate path in filename separated by exclamation
-there should be a phony restore option just suggesting how to go about restorating

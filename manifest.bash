@@ -75,6 +75,7 @@ notify=$((1<<0))
 stdout=$((1<<1))
 log=$((1<<2))
 
+notify "balls"
 
 messageHandler() {
   n=$(($1*notify))
@@ -90,8 +91,7 @@ then
 fi
 
 messageHandler "${osxNote}" "${ttyNote}" "${logNote}"
-messageStatus=$?
-
+messageStatus=1
 ###############################
 missing () {
   printf "I require %s, but it was not found. Aborting.\\n" "${1}" && exit 1;
@@ -332,7 +332,6 @@ EOM
 init
 #
 #
-
 while getopts acfinq:tvh FLAG; do
   case $FLAG in
     a) #set a

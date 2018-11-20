@@ -14,17 +14,16 @@ verifyBase() {
     _BASE="/${_CWD}/${_BASE}"
   fi
 
-
   # test if directory exists
   if [[ ! -d "${1}" ]]; then
     notify '_BASE path must exist!'
     exit 1
   fi
+
   # test if directory is writeable
   if [[ ! -w "${1}" ]]; then
     notify '_BASE path must be writable!'
     exit 77
   fi
-
   return 0
 }
