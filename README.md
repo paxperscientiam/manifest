@@ -17,7 +17,7 @@ By default, `manifest` is installed into `${HOME}/bin/paxperscientiam/`.
 ```bash
 make uninstall
 ```
-This will move `${HOME}/bin/paxperscientiam/` to a temporary folder.
+This will move `${HOME}/bin/paxperscientiam/manifest` to a temporary folder.
 
 
 
