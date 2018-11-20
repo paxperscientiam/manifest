@@ -21,5 +21,5 @@ install:$(TARGET)
 .PHONY:uninstall
 uninstall: $(DEST_DIR)/manifest
 					$(eval TMP_DIR := $(shell mktemp -d))
-					$(info Moving ${DEST_DIR} to the ${TMP_DIR}.)
-					mv $(DEST_DIR) $(TMP_DIR)
+					$(info Moving ${DEST_DIR} to the TMP_DIR.)
+					mv $(DEST_DIR)/manifest $(TMP_DIR)
