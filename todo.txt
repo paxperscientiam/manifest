@@ -29,3 +29,5 @@ add command completion
 i think manifests should be timestamped
 output should also indicate path in filename separated by exclamation
 there should be a phony restore option just suggesting how to go about restorating
+add option to backup all
+add option to read from config what user wants to backup
